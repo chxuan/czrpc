@@ -1,13 +1,13 @@
-#ifndef _COMMON_UTIL_H
-#define _COMMON_UTIL_H
+#pragma once
 
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
-namespace easyrpc
+namespace czrpc
 {
-
+namespace base
+{
 std::string gen_uuid()
 {
     boost::uuids::uuid id = boost::uuids::random_generator()();
@@ -15,5 +15,5 @@ std::string gen_uuid()
 }
 
 }
+}
 
-#endif

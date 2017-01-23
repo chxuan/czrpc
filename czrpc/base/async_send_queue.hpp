@@ -1,10 +1,13 @@
-#ifndef _ASYNC_SEND_QUEUE_H
-#define _ASYNC_SEND_QUEUE_H
+#pragma once
 
 #include <string>
 #include <list>
 #include <mutex>
 
+namespace czrpc
+{
+namespace base
+{
 class async_send_queue
 {
 public:
@@ -49,4 +52,5 @@ private:
     std::mutex mutex_;
 };
 
-#endif
+}
+}

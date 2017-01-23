@@ -1,5 +1,4 @@
-#ifndef _THREADPOOL_H
-#define _THREADPOOL_H
+#pragma once
 
 #include <vector>
 #include <queue>
@@ -11,9 +10,10 @@
 #include <atomic>
 #include <type_traits>
 
-namespace easyrpc
+namespace czrpc
 {
-
+namespace base
+{
 static const std::size_t max_task_quque_size = 100000;
 static const std::size_t max_thread_size = 30;
 
@@ -168,5 +168,5 @@ private:
 };
 
 }
+}
 
-#endif

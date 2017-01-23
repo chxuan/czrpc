@@ -1,9 +1,7 @@
-#ifndef _HEADER_H
-#define _HEADER_H
-
+#pragma once
 #include <string>
 
-namespace easyrpc
+namespace czrpc
 {
 
 constexpr const int max_buffer_len = 20 * 1024 * 1024; // 20MB
@@ -105,4 +103,3 @@ using two_way = std::string;
 
 }
 
-#endif

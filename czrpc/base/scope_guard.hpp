@@ -1,11 +1,11 @@
-#ifndef _SCOPE_GUARD_H
-#define _SCOPE_GUARD_H
+#pragma once
 
 #include <iostream>
 
-namespace easyrpc
+namespace czrpc
 {
-
+namespace base
+{
 template<typename T>
 class scope_guard
 {
@@ -48,5 +48,4 @@ scope_guard<typename std::decay<T>::type> make_guard(T&& func)
 }
 
 }
-
-#endif
+}

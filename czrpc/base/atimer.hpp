@@ -1,5 +1,4 @@
-#ifndef _ATIMER_H
-#define _ATIMER_H
+#pragma once
 
 #include <vector>
 #include <atomic>
@@ -7,9 +6,10 @@
 #include <boost/timer.hpp>
 #include <boost/asio.hpp>
 
-namespace easyrpc
+namespace czrpc
 {
-
+namespace base
+{
 template<typename Duration = boost::posix_time::milliseconds>
 class atimer
 {
@@ -65,5 +65,5 @@ private:
 };
 
 }
+}
 
-#endif

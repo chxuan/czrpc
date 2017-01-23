@@ -1,5 +1,3 @@
-#ifndef _EASYRPC_H
-#define _EASYRPC_H
+#pragma once
 #include "server/server.hpp"
 #include "client/client.hpp"
-#endif

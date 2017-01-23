@@ -1,5 +1,4 @@
-#ifndef _FILE_UTIL_H
-#define _FILE_UTIL_H
+#pragma once
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -21,9 +20,10 @@
 #define PATH_MAX 1024      
 #endif
 
-namespace easyrpc
+namespace czrpc
 {
-
+namespace base
+{
 class file_util
 {
 public:
@@ -193,5 +193,5 @@ public:
 };
 
 }
+}
 
-#endif

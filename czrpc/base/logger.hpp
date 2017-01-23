@@ -1,15 +1,15 @@
-#ifndef _LOGGER_H
-#define _LOGGER_H
+#pragma once
 
 #include <iostream>
 #include <spdlog/spdlog.h>
 #include "file_util.hpp"
 #include "singleton.hpp"
 
-namespace easyrpc
+namespace czrpc
 {
-
-static const std::string logger_name = "easyrpc";
+namespace base
+{
+static const std::string logger_name = "czrpc";
 static const std::size_t max_file_size = 3 * 1024 * 1024;
 static const std::size_t max_files = 30;
 
@@ -147,5 +147,5 @@ private:
 #define log_critical    logger(LOCATION, spdlog::level::level_enum::critical).log
 
 }
+}
 
-#endif

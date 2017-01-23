@@ -1,12 +1,12 @@
-#ifndef _SINGLETON_H
-#define _SINGLETON_H
+#pragma once
 
 #include <iostream>
 #include <mutex>
 
-namespace easyrpc
+namespace czrpc
 {
-
+namespace base
+{
 template<typename T>
 class singleton_helper
 {
@@ -87,5 +87,5 @@ class_name& operator=(const class_name&) = delete; \
 public: 
 
 }
+}
 
-#endif
