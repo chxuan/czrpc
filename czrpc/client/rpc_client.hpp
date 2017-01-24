@@ -31,20 +31,11 @@ public:
         request_content content;
         content.protocol = func_name;
         content.message_name = message->GetDescriptor()->full_name();
-        content.body = message->SerializeAsString();
+        content.body = serialize_util::singleton::get()->serialize(message);
         auto ret = call_two_way(flag, content);
         std::string message_name = std::string(&ret[0], res_head_.message_name_len);
         std::string body = std::string(&ret[res_head_.message_name_len], res_head_.body_len);
-        std::shared_ptr<google::protobuf::Message> ret_message = create_message(message_name);
-        if (ret_message == nullptr)
-        {
-            throw std::runtime_error("Return message is nullptr");
-        }
-        if (!ret_message->ParseFromString(body))
-        {
-            throw std::runtime_error("Parse from string failed");
-        }
-        return ret_message;
+        return serialize_util::singleton::get()->deserialize(message_name, body);
     }
 
 #if 0

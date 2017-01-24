@@ -1,14 +1,12 @@
-#ifndef _CONNECTION_MANAGER_H
-#define _CONNECTION_MANAGER_H
+#pragma once
 
 #include <string>
 #include <unordered_map>
 #include "base/singleton.hpp"
 #include "connection.hpp"
 
-namespace easyrpc
+namespace czrpc
 {
-
 class connection_manager
 {
     DEFINE_SINGLETON(connection_manager);
@@ -51,4 +49,3 @@ private:
 
 }
 
-#endif

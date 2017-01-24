@@ -12,6 +12,7 @@
 #include "base/scope_guard.hpp"
 #include "base/logger.hpp"
 #include "base/async_send_queue.hpp"
+#include "base/serialize_util.hpp"
 
 using namespace czrpc::base;
 
@@ -102,20 +103,6 @@ protected:
             }
         }
         return false;
-    }
-
-    std::shared_ptr<google::protobuf::Message> create_message(const std::string& message_name)
-    {
-        const auto descriptor = google::protobuf::DescriptorPool::generated_pool()->FindMessageTypeByName(message_name);
-        if (descriptor)
-        {
-            const auto prototype = google::protobuf::MessageFactory::generated_factory()->GetPrototype(descriptor);
-            if (prototype)
-            {
-                return std::shared_ptr<google::protobuf::Message>(prototype->New());            
-            }
-        }
-        return nullptr;
     }
 
 private:
@@ -337,7 +324,6 @@ private:
 protected:
     client_type client_type_;
     response_header res_head_;
-    std::vector<char> content_;
 
 private:
     boost::asio::io_service ios_;
@@ -346,6 +332,7 @@ private:
     boost::asio::ip::tcp::resolver::iterator endpoint_iter_;
     std::unique_ptr<std::thread> thread_;
     char res_head_buf_[response_header_len];
+    std::vector<char> content_;
 
     boost::asio::io_service timer_ios_;
     boost::asio::io_service::work timer_work_;
