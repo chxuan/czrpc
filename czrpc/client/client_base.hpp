@@ -5,6 +5,7 @@
 #include <vector>
 #include <thread>
 #include <memory>
+#include <google/protobuf/message.h>
 #include <boost/asio.hpp>
 #include "base/header.hpp"
 #include "base/atimer.hpp"
@@ -103,6 +104,20 @@ protected:
         return false;
     }
 
+    std::shared_ptr<google::protobuf::Message> create_message(const std::string& message_name)
+    {
+        const auto descriptor = google::protobuf::DescriptorPool::generated_pool()->FindMessageTypeByName(message_name);
+        if (descriptor)
+        {
+            const auto prototype = google::protobuf::MessageFactory::generated_factory()->GetPrototype(descriptor);
+            if (prototype)
+            {
+                return std::shared_ptr<google::protobuf::Message>(prototype->New());            
+            }
+        }
+        return nullptr;
+    }
+
 private:
     std::string get_buffer(const request_data& data)
     {
@@ -110,6 +125,7 @@ private:
         buffer.append(reinterpret_cast<const char*>(&data.header), sizeof(data.header));
         buffer.append(data.content.call_id);
         buffer.append(data.content.protocol);
+        buffer.append(data.content.message_name);
         buffer.append(data.content.body);
         return std::move(buffer);
     }
@@ -142,10 +158,11 @@ private:
         request_header header;
         header.call_id_len = content.call_id.size();
         header.protocol_len = content.protocol.size();
+        header.message_name_len = content.message_name.size();
         header.body_len = content.body.size();
         header.flag = flag;
 
-        if (header.call_id_len + header.protocol_len + header.body_len > max_buffer_len)
+        if (header.call_id_len + header.protocol_len + header.message_name_len + header.body_len > max_buffer_len)
         {
             throw std::runtime_error("Send data is too big");
         }
@@ -159,10 +176,11 @@ private:
         request_header header;
         header.call_id_len = content.call_id.size();
         header.protocol_len = content.protocol.size();
+        header.message_name_len = content.message_name.size();
         header.body_len = content.body.size();
         header.flag = flag;
 
-        if (header.call_id_len + header.protocol_len + header.body_len > max_buffer_len)
+        if (header.call_id_len + header.protocol_len + header.message_name_len + header.body_len > max_buffer_len)
         {
             throw std::runtime_error("Send data is too big");
         }
@@ -241,7 +259,7 @@ private:
     void check_head()
     {
         memcpy(&res_head_, res_head_buf_, sizeof(res_head_buf_));
-        if (res_head_.call_id_len + res_head_.body_len > max_buffer_len)
+        if (res_head_.call_id_len + res_head_.message_name_len + res_head_.body_len > max_buffer_len)
         {
             throw std::runtime_error("Body len is too big");
         }
@@ -318,6 +336,8 @@ private:
 
 protected:
     client_type client_type_;
+    response_header res_head_;
+    std::vector<char> content_;
 
 private:
     boost::asio::io_service ios_;
@@ -326,8 +346,6 @@ private:
     boost::asio::ip::tcp::resolver::iterator endpoint_iter_;
     std::unique_ptr<std::thread> thread_;
     char res_head_buf_[response_header_len];
-    response_header res_head_;
-    std::vector<char> content_;
 
     boost::asio::io_service timer_ios_;
     boost::asio::io_service::work timer_work_;
@@ -343,5 +361,3 @@ private:
 };
 
 }
-
-#endif

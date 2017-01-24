@@ -5,8 +5,8 @@ namespace czrpc
 {
 
 constexpr const int max_buffer_len = 20 * 1024 * 1024; // 20MB
-constexpr const int request_header_len = 4 + 4 + 4 + 4 + 4;
-constexpr const int response_header_len = 4 + 4;
+constexpr const int request_header_len = 4 + 4 + 4 + 4 + 4 + 4;
+constexpr const int response_header_len = 4 + 4 + 4;
 constexpr const int push_header_len = 4 + 4 + 4;
 const std::string subscribe_topic_flag = "1";
 const std::string cancel_subscribe_topic_flag = "0";
@@ -38,6 +38,7 @@ struct request_header
 {
     unsigned int call_id_len;
     unsigned int protocol_len;
+    unsigned int message_name_len;
     unsigned int body_len;
     client_flag flag;
 };
@@ -46,6 +47,7 @@ struct request_content
 {
     std::string call_id;
     std::string protocol;
+    std::string message_name;
     std::string body;
 };
 
@@ -58,12 +60,14 @@ struct request_data
 struct response_header
 {
     unsigned int call_id_len;
+    unsigned int message_name_len;
     unsigned int body_len;
 };
 
 struct response_content
 {
     std::string call_id;
+    std::string message_name;
     std::string body;
 };
 

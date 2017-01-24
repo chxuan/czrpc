@@ -1,4 +1,5 @@
 #include <iostream>
+#include "czrpc/client/client.hpp"
 
 int main()
 {

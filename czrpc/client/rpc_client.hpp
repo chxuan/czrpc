@@ -3,7 +3,6 @@
 #include <unordered_map>
 #include <mutex>
 #include "base/common_util.hpp"
-#include "protocol.hpp"
 #include "client_base.hpp"
 
 namespace czrpc
@@ -25,57 +24,56 @@ public:
         try_connect();
     }
 
-    template<typename Protocol, typename... Args>
-    typename std::enable_if<std::is_void<typename Protocol::return_type>::value, typename Protocol::return_type>::type
-    call(const Protocol& protocol, Args&&... args)
+    std::shared_ptr<google::protobuf::Message> call(const std::string& func_name, std::shared_ptr<google::protobuf::Message>& message)
     {
         try_connect();
         client_flag flag{ serialize_mode::serialize, client_type_ };
         request_content content;
-        content.protocol = protocol.name();
-        content.body = serialize(std::forward<Args>(args)...);
-        call_one_way(flag, content);
+        content.protocol = func_name;
+        content.message_name = message->GetDescriptor()->full_name();
+        content.body = message->SerializeAsString();
+        auto ret = call_two_way(flag, content);
+        std::string message_name = std::string(&ret[0], res_head_.message_name_len);
+        std::string body = std::string(&ret[res_head_.message_name_len], res_head_.body_len);
+        std::shared_ptr<google::protobuf::Message> ret_message = create_message(message_name);
+        if (ret_message == nullptr)
+        {
+            throw std::runtime_error("Return message is nullptr");
+        }
+        if (!ret_message->ParseFromString(body))
+        {
+            throw std::runtime_error("Parse from string failed");
+        }
+        return ret_message;
     }
 
-    template<typename Protocol, typename... Args>
-    typename std::enable_if<!std::is_void<typename Protocol::return_type>::value, typename Protocol::return_type>::type
-    call(const Protocol& protocol, Args&&... args)
-    {
-        try_connect();
-        client_flag flag{ serialize_mode::serialize, client_type_ };
-        request_content content;
-        content.protocol = protocol.name();
-        content.body = serialize(std::forward<Args>(args)...);
-        auto ret = call_two_way(flag, content);
-        return protocol.deserialize(std::string(&ret[0], ret.size()));
-    }
+#if 0
+    template<typename ReturnType>
+        typename std::enable_if<std::is_same<ReturnType, one_way>::value>::type 
+        call_raw(const std::string& protocol, const std::string& body)
+        {
+            try_connect();
+            client_flag flag{ serialize_mode::non_serialize, client_type_ };
+            request_content content;
+            content.protocol = protocol;
+            content.body = body;
+            call_one_way(flag, content);
+        }
 
     template<typename ReturnType>
-    typename std::enable_if<std::is_same<ReturnType, one_way>::value>::type 
-    call_raw(const std::string& protocol, const std::string& body)
-    {
-        try_connect();
-        client_flag flag{ serialize_mode::non_serialize, client_type_ };
-        request_content content;
-        content.protocol = protocol;
-        content.body = body;
-        call_one_way(flag, content);
-    }
-
-    template<typename ReturnType>
-    typename std::enable_if<std::is_same<ReturnType, two_way>::value, std::string>::type 
-    call_raw(const std::string& protocol, const std::string& body)
-    {
-        try_connect();
-        client_flag flag{ serialize_mode::non_serialize, client_type_ };
-        request_content content;
-        content.protocol = protocol;
-        content.body = body;
-        auto ret = call_two_way(flag, content);
-        return std::string(&ret[0], ret.size());
-    }
+        typename std::enable_if<std::is_same<ReturnType, two_way>::value, std::string>::type 
+        call_raw(const std::string& protocol, const std::string& body)
+        {
+            try_connect();
+            client_flag flag{ serialize_mode::non_serialize, client_type_ };
+            request_content content;
+            content.protocol = protocol;
+            content.body = body;
+            auto ret = call_two_way(flag, content);
+            return std::string(&ret[0], ret.size());
+        }
+#endif
 };
 
 }
 
-#endif

@@ -11,11 +11,14 @@ include_directories(${PROJECT_SOURCE_DIR}/../..)
 include_directories(${PROJECT_SOURCE_DIR}/../../czrpc)
 include_directories(${PROJECT_SOURCE_DIR}/../../spdlog/include)
 include_directories($ENV{BOOST_INCLUDE_PATH})
+include_directories($ENV{PROTOBUF_INCLUDE_PATH})
 
 link_directories($ENV{BOOST_LIB_PATH})
+link_directories($ENV{PROTOBUF_LIB_PATH})
 
 add_executable(${OUTPUTNAME} ${DIR_SRCS})
 
 target_link_libraries(${OUTPUTNAME} boost_serialization)
 target_link_libraries(${OUTPUTNAME} boost_system)
+target_link_libraries(${OUTPUTNAME} libprotobuf.so)
 target_link_libraries(${OUTPUTNAME} pthread)

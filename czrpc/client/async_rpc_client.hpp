@@ -1,13 +1,11 @@
-#ifndef _ASYNC_RPC_CLIENT_H
-#define _ASYNC_RPC_CLIENT_H
+#pragma once
 
 #include <unordered_map>
 #include <mutex>
 #include "base/common_util.hpp"
-#include "protocol.hpp"
 #include "client_base.hpp"
 
-namespace easyrpc
+namespace czrpc
 {
 
 class async_rpc_client : public client_base
@@ -39,13 +37,15 @@ public:
         {
             task_ = [&func, this](const std::string& body)
             {
-                return func(deserialize(std::string(&body[0], body.size()))); 
+                (void)body;
+                /* return func(deserialize(std::string(&body[0], body.size()))); */ 
             };
             client_->async_call_one_way(flag_, content_);
             client_->add_bind_func(content_.call_id, task_);
         }
 
     private:
+#if 0
         ReturnType deserialize(const std::string& text) 
         {
             easypack::unpack up(text);
@@ -53,6 +53,7 @@ public:
             up.unpack_args(ret);
             return std::move(ret);
         }
+#endif
 
     private:
         client_flag flag_;
@@ -61,6 +62,7 @@ public:
         async_rpc_client* client_;
     };
 
+#if 0
     template<typename Protocol, typename... Args>
     auto async_call(const Protocol& protocol, Args&&... args)
     {
@@ -74,6 +76,7 @@ public:
         using return_type = typename Protocol::return_type;
         return rpc_task<return_type>{ flag, content, this };
     }
+#endif
 
 private:
     void async_read_head()
@@ -173,4 +176,3 @@ private:
 
 }
 
-#endif
