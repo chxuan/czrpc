@@ -12,6 +12,14 @@
 
 namespace czrpc
 {
+namespace server
+{
+struct endpoint
+{
+    std::string ip;
+    unsigned short port;
+};
+
 class server
 {
 public:
@@ -233,5 +241,6 @@ private:
     atimer<> timer_;
 };
 
+}
 }
 

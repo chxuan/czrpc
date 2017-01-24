@@ -4,7 +4,8 @@
 
 namespace czrpc
 {
-
+namespace client
+{
 class pub_client : public client_base
 {
 public:
@@ -65,5 +66,5 @@ public:
 };
 
 }
+}
 
-#endif

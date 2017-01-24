@@ -15,6 +15,8 @@ using namespace czrpc::base;
 
 namespace czrpc
 {
+namespace server
+{
 class connection;
 using connection_ptr = std::shared_ptr<connection>;
 using connection_weak_ptr = std::weak_ptr<connection>;
@@ -287,5 +289,6 @@ private:
     async_send_queue send_queue_;
 };
 
+}
 }
 

@@ -15,7 +15,7 @@ class serialize_util
 public:
     serialize_util() = default;
 
-    std::string serialize(std::shared_ptr<google::protobuf::Message>& message)
+    std::string serialize(const std::shared_ptr<google::protobuf::Message>& message)
     {
         return message->SerializeAsString();
     }

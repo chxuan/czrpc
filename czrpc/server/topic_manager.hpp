@@ -7,6 +7,8 @@
 
 namespace czrpc
 {
+namespace server
+{
 class topic_manager
 {
     DEFINE_SINGLETON(topic_manager);
@@ -82,5 +84,6 @@ private:
     std::mutex mutex_;
 };
 
+}
 }
 

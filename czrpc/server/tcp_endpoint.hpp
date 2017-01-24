@@ -5,6 +5,8 @@
 
 namespace czrpc
 {
+namespace server
+{
 class tcp_endpoint
 {
 public:
@@ -42,5 +44,6 @@ private:
     handle_error_callback handle_error_;
 };
 
+}
 }
 

@@ -11,6 +11,8 @@ using namespace czrpc::base;
 
 namespace czrpc
 {
+namespace server
+{
 class io_service_pool
 {
     DEFINE_SINGLETON(io_service_pool);
@@ -94,5 +96,6 @@ private:
     std::size_t next_io_service_ = 0;
 };
 
+}
 }
 

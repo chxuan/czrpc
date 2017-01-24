@@ -5,7 +5,8 @@
 
 namespace czrpc
 {
-
+namespace client
+{
 class sub_client : public client_base
 {
 public:
@@ -326,5 +327,5 @@ private:
 };
 
 }
+}
 
-#endif

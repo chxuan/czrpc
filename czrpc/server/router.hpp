@@ -15,11 +15,13 @@
 
 namespace czrpc
 {
+namespace server
+{
 class invoker_function
 {
 public:
-    using function_t = std::function<void(const std::shared_ptr<google::protobuf::Message>&, 
-                                          std::string& out_message_name, std::string& out_body)>;
+    /* using function_t = std::function<void(const std::shared_ptr<google::protobuf::Message>&, std::string&, std::string&)>; */
+    using function_t = std::function<void(const std::string&, std::string&)>;
     invoker_function() = default;
     invoker_function(const function_t& func) : func_(func) {}
 
@@ -28,6 +30,7 @@ public:
     {
         try
         {
+#if 0
             std::string out_message_name;
             std::string out_body;
             func_(serialize_util::singleton::get()->deserialize(message_name, body), out_message_name, out_body);
@@ -35,6 +38,7 @@ public:
             {
                 conn->async_write(response_content{ call_id, out_message_name, out_body });
             }
+#endif
         }
         catch (std::exception& e)
         {
@@ -50,7 +54,7 @@ private:
 class invoker_function_raw
 {
 public:
-    using function_t = std::function<void(const std::string& body, std::string& out_body)>;
+    using function_t = std::function<void(const std::string&, std::string&)>;
     invoker_function_raw() = default;
     invoker_function_raw(const function_t& func) : func_(func) {}
 
@@ -307,11 +311,13 @@ private:
     class invoker
     {
     public:
-        static void apply(const Function& func, const std::string& body, std::string& out_message_name, std::string& out_body)
+        static void apply(const Function& func, const std::string& body, std::string& out_body)
+        /* static void apply(const Function& func, const std::string& body, */ 
+                          /* std::string& out_message_name, std::string& out_body) */
         {
             try
             {
-                call(func, body, out_message_name, out_body);
+                /* call(func, body, out_message_name, out_body); */
             }
             catch (std::exception& e)
             {
@@ -320,12 +326,13 @@ private:
         }
 
         template<typename Self>
-        static void apply_member(const Function& func, Self* self, const std::string& body, 
-                                 std::string& out_message_name, std::string& out_body)
+        static void apply_member(const Function& func, Self* self, const std::string& body, std::string& out_body)
+        /* static void apply_member(const Function& func, Self* self, const std::string& body, */ 
+                                 /* std::string& out_message_name, std::string& out_body) */
         {
             try
             {
-                call_member(func, self, body, out_message_name, out_body);
+                /* call_member(func, self, body, out_message_name, out_body); */
             }
             catch (std::exception& e)
             {
@@ -385,16 +392,20 @@ private:
     void bind_non_member_func(const std::string& protocol, const Function& func)
     {
         std::lock_guard<std::mutex> lock(map_mutex_);
+        /* invoker_map_[protocol] = { std::bind(&invoker<Function>::apply, func, */ 
+                                                /* std::placeholders::_1, std::placeholders::_2, std::placeholders::_3) }; */
         invoker_map_[protocol] = { std::bind(&invoker<Function>::apply, func, 
-                                                std::placeholders::_1, std::placeholders::_2, std::placeholders::_3) };
+                                                std::placeholders::_1, std::placeholders::_2) };
     }
 
     template<typename Function, typename Self>
     void bind_member_func(const std::string& protocol, const Function& func, Self* self)
     {
+#if 0
         std::lock_guard<std::mutex> lock(map_mutex_);
         invoker_map_[protocol] = { std::bind(&invoker<Function>::template apply_member<Self>, func, self, 
                                                 std::placeholders::_1, std::placeholders::_2, std::placeholders::_3) };
+#endif
     }
 
     template<typename Function>
@@ -429,5 +440,6 @@ private:
     sub_coming_helper sub_coming_helper_;
 };
 
+}
 }
 

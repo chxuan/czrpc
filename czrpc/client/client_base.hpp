@@ -18,7 +18,8 @@ using namespace czrpc::base;
 
 namespace czrpc
 {
-
+namespace client
+{
 class client_base
 {
 public:
@@ -347,4 +348,5 @@ private:
     async_send_queue send_queue_;
 };
 
+}
 }

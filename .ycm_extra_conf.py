@@ -100,6 +100,8 @@ flags = [
 '-isystem',
 './test',
 '-isystem',
+'./test/proto/code',
+'-isystem',
 './test/server',
 '-isystem',
 './test/sync_rpc_client',

@@ -7,6 +7,8 @@
 
 namespace czrpc
 {
+namespace server
+{
 class connection_manager
 {
     DEFINE_SINGLETON(connection_manager);
@@ -47,5 +49,6 @@ private:
     std::mutex mutex_;
 };
 
+}
 }
 

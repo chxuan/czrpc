@@ -9,11 +9,11 @@
 #include "base/function_traits.hpp"
 #include "base/logger.hpp"
 #include "base/singleton.hpp"
-#include "base/parser_util.hpp"
 
 namespace czrpc
 {
-
+namespace client
+{
 class sub_invoker_function
 {
 public:
@@ -357,5 +357,5 @@ private:
 };
 
 }
+}
 
-#endif

@@ -7,7 +7,8 @@
 
 namespace czrpc
 {
-
+namespace client
+{
 class rpc_client : public client_base
 {
 public:
@@ -24,7 +25,8 @@ public:
         try_connect();
     }
 
-    std::shared_ptr<google::protobuf::Message> call(const std::string& func_name, std::shared_ptr<google::protobuf::Message>& message)
+    std::shared_ptr<google::protobuf::Message> call(const std::string& func_name, 
+                                                    const std::shared_ptr<google::protobuf::Message>& message)
     {
         try_connect();
         client_flag flag{ serialize_mode::serialize, client_type_ };
@@ -66,5 +68,6 @@ public:
 #endif
 };
 
+}
 }
 
