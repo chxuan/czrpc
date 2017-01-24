@@ -1,12 +1,10 @@
-#ifndef _TCP_ENDPOINT_H
-#define _TCP_ENDPOINT_H
-
-namespace easyrpc
-{
+#pragma once
 
 #include "io_service_pool.hpp"
 #include "connection.hpp"
 
+namespace czrpc
+{
 class tcp_endpoint
 {
 public:
@@ -46,4 +44,3 @@ private:
 
 }
 
-#endif

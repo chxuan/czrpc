@@ -1,14 +1,12 @@
-#ifndef _TOPIC_MANAGER_H
-#define _TOPIC_MANAGER_H
-
-namespace easyrpc
-{
+#pragma once
 
 #include <string>
 #include <unordered_map>
 #include "base/singleton.hpp"
 #include "connection.hpp"
 
+namespace czrpc
+{
 class topic_manager
 {
     DEFINE_SINGLETON(topic_manager);
@@ -86,4 +84,3 @@ private:
 
 }
 
-#endif

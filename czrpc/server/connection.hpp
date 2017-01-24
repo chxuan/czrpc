@@ -1,5 +1,4 @@
-#ifndef _CONNECTION_H
-#define _CONNECTION_H
+#pragma once
 
 #include <vector>
 #include <list>
@@ -12,9 +11,10 @@
 #include "base/logger.hpp"
 #include "base/async_send_queue.hpp"
 
-namespace easyrpc
-{
+using namespace czrpc::base;
 
+namespace czrpc
+{
 class connection;
 using connection_ptr = std::shared_ptr<connection>;
 using connection_weak_ptr = std::weak_ptr<connection>;
@@ -282,4 +282,3 @@ private:
 
 }
 
-#endif

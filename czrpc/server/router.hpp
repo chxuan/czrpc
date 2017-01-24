@@ -1,5 +1,4 @@
-#ifndef _ROUTER_H
-#define _ROUTER_H
+#pragma once
 
 #include <iostream>
 #include <unordered_map>
@@ -11,12 +10,10 @@
 #include "base/thread_pool.hpp"
 #include "base/logger.hpp"
 #include "base/singleton.hpp"
-#include "base/parser_util.hpp"
 #include "connection.hpp"
 
-namespace easyrpc
+namespace czrpc
 {
-
 class invoker_function
 {
 public:
@@ -441,4 +438,3 @@ private:
 
 }
 
-#endif

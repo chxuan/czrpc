@@ -1,5 +1,4 @@
-#ifndef _IO_SERVER_POOL_H
-#define _IO_SERVER_POOL_H
+#pragma once
 
 #include <vector>
 #include <memory>
@@ -8,9 +7,10 @@
 #include <boost/bind.hpp>
 #include "base/singleton.hpp"
 
-namespace easyrpc
-{
+using namespace czrpc::base;
 
+namespace czrpc
+{
 class io_service_pool
 {
     DEFINE_SINGLETON(io_service_pool);
@@ -96,4 +96,3 @@ private:
 
 }
 
-#endif

@@ -1,5 +1,4 @@
-#ifndef _SERVER_H
-#define _SERVER_H
+#pragma once
 
 #include <iostream>
 #include <vector>
@@ -11,9 +10,8 @@
 #include "topic_manager.hpp"
 #include "connection_manager.hpp"
 
-namespace easyrpc
+namespace czrpc
 {
-
 class server
 {
 public:
@@ -237,4 +235,3 @@ private:
 
 }
 
-#endif
