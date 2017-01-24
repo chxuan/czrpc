@@ -1,0 +1,12 @@
+message request_person_info_message
+{
+    required string name = 1;
+    required int32 age = 2;
+}
+
+message response_person_info_message
+{
+    required string name = 1;
+    required int32 age = 2;
+}
+

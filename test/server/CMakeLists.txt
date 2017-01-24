@@ -10,6 +10,7 @@ include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${PROJECT_SOURCE_DIR}/../..)
 include_directories(${PROJECT_SOURCE_DIR}/../../czrpc)
 include_directories(${PROJECT_SOURCE_DIR}/../../spdlog/include)
+include_directories(${PROJECT_SOURCE_DIR}/../proto/code)
 include_directories($ENV{BOOST_INCLUDE_PATH})
 include_directories($ENV{PROTOBUF_INCLUDE_PATH})
 
