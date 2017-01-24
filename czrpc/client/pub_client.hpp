@@ -1,9 +1,8 @@
-#ifndef _PUB_CLIENT_H
-#define _PUB_CLIENT_H
+#pragma once
 
 #include "client_base.hpp"
 
-namespace easyrpc
+namespace czrpc
 {
 
 class pub_client : public client_base

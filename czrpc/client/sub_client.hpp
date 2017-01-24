@@ -1,10 +1,9 @@
-#ifndef _SUB_CLIENT_H
-#define _SUB_CLIENT_H
+#pragma once
 
 #include "client_base.hpp"
 #include "sub_router.hpp"
 
-namespace easyrpc
+namespace czrpc
 {
 
 class sub_client : public client_base

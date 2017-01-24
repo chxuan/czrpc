@@ -1,5 +1,4 @@
-#ifndef _CLIENT_BASE_H
-#define _CLIENT_BASE_H
+#pragma once
 
 #include <iostream>
 #include <string>
@@ -11,10 +10,11 @@
 #include "base/atimer.hpp"
 #include "base/scope_guard.hpp"
 #include "base/logger.hpp"
-#include "base/parser_util.hpp"
 #include "base/async_send_queue.hpp"
 
-namespace easyrpc
+using namespace czrpc::base;
+
+namespace czrpc
 {
 
 class client_base

@@ -1,5 +1,4 @@
-#ifndef _RPC_CLIENT_H
-#define _RPC_CLIENT_H
+#pragma once
 
 #include <unordered_map>
 #include <mutex>
@@ -7,7 +6,7 @@
 #include "protocol.hpp"
 #include "client_base.hpp"
 
-namespace easyrpc
+namespace czrpc
 {
 
 class rpc_client : public client_base
