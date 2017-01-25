@@ -26,6 +26,9 @@ int main()
             auto message = std::dynamic_pointer_cast<response_error>(ret_message); 
             message->PrintDebugString();
         }
+
+        std::string ret_string = client.call_raw("echo", "Hello world");
+        std::cout << "ret_string: " << ret_string << std::endl;
     }
     catch (std::exception& e)
     {

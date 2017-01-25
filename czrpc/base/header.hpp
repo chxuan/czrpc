@@ -97,9 +97,6 @@ struct push_data
     push_content content;
 };
 
-using one_way = void;
-using two_way = std::string;
-
 struct endpoint
 {
     std::string ip;

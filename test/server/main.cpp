@@ -19,13 +19,18 @@ std::shared_ptr<google::protobuf::Message> request_person_info(const std::shared
     return out_message;
 }
 
+std::string echo(const std::string& str)
+{
+    return str;
+}
+
 int main()
 {
     czrpc::server::server server;
     try
     {
         server.bind("request_person_info", &request_person_info);
-        /* server.bind_raw("request_person_info", &request_person_info); */
+        server.bind_raw("echo", &echo);
 
         std::vector<czrpc::base::endpoint> ep;
         ep.emplace_back(czrpc::base::endpoint{ "127.0.0.1", 50051 });

@@ -40,32 +40,16 @@ public:
         return serialize_util::singleton::get()->deserialize(message_name, body);
     }
 
-#if 0
-    template<typename ReturnType>
-        typename std::enable_if<std::is_same<ReturnType, one_way>::value>::type 
-        call_raw(const std::string& protocol, const std::string& body)
-        {
-            try_connect();
-            client_flag flag{ serialize_mode::non_serialize, client_type_ };
-            request_content content;
-            content.protocol = protocol;
-            content.body = body;
-            call_one_way(flag, content);
-        }
-
-    template<typename ReturnType>
-        typename std::enable_if<std::is_same<ReturnType, two_way>::value, std::string>::type 
-        call_raw(const std::string& protocol, const std::string& body)
-        {
-            try_connect();
-            client_flag flag{ serialize_mode::non_serialize, client_type_ };
-            request_content content;
-            content.protocol = protocol;
-            content.body = body;
-            auto ret = call_two_way(flag, content);
-            return std::string(&ret[0], ret.size());
-        }
-#endif
+    std::string call_raw(const std::string& func_name, const std::string& body)
+    {
+        try_connect();
+        client_flag flag{ serialize_mode::non_serialize, client_type_ };
+        request_content content;
+        content.protocol = func_name;
+        content.body = body;
+        auto ret = call_two_way(flag, content);
+        return std::string(&ret[0], ret.size());
+    }
 };
 
 }
