@@ -27,7 +27,7 @@ public:
 
     void accept()
     {
-        auto new_conn = std::make_shared<connection>(io_service_pool::singleton::get()->get_io_service(), 2000, route_, handle_error_);
+        auto new_conn = std::make_shared<connection>(io_service_pool::singleton::get()->get_io_service(), route_, handle_error_);
         acceptor_.async_accept(new_conn->socket(), [this, new_conn](boost::system::error_code ec)
         {
             if (!ec)

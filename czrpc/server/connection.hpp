@@ -6,8 +6,8 @@
 #include <boost/asio.hpp>
 #include <boost/timer.hpp>
 #include "base/header.hpp"
-#include "base/atimer.hpp"
 #include "base/scope_guard.hpp"
+#include "base/atimer.hpp"
 #include "base/logger.hpp"
 #include "base/table/threadsafe_list.hpp"
 
@@ -31,9 +31,9 @@ public:
     connection(const connection&) = delete;
     connection& operator=(const connection&) = delete;
     connection(boost::asio::io_service& ios, 
-               std::size_t timeout_milli, const router_callback& route_func, 
+               const router_callback& route_func, 
                const handle_error_callback& handle_error_func)
-        : ios_(ios), socket_(ios), timeout_milli_(timeout_milli), route_(route_func), 
+        : ios_(ios), socket_(ios), route_(route_func), 
         handle_error_(handle_error_func) {} 
 
     ~connection()
@@ -284,7 +284,6 @@ private:
     char req_head_buf_[request_header_len];
     request_header req_head_;
     std::vector<char> content_;
-    std::size_t timeout_milli_ = 0;
     router_callback route_;
     handle_error_callback handle_error_;
     threadsafe_list<std::string> send_queue_;
