@@ -10,7 +10,6 @@ namespace czrpc
 {
 namespace base
 {
-
 class serialize_util
 {
     DEFINE_SINGLETON(serialize_util);

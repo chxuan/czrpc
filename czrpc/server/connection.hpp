@@ -9,7 +9,7 @@
 #include "base/atimer.hpp"
 #include "base/scope_guard.hpp"
 #include "base/logger.hpp"
-#include "base/async_send_queue.hpp"
+#include "base/threadsafe_list.hpp"
 
 using namespace czrpc::base;
 
@@ -286,7 +286,7 @@ private:
     std::size_t timeout_milli_ = 0;
     router_callback route_;
     handle_error_callback handle_error_;
-    async_send_queue send_queue_;
+    threadsafe_list<std::string> send_queue_;
 };
 
 }

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <string>
 #include <list>
 #include <mutex>
 
@@ -8,47 +7,48 @@ namespace czrpc
 {
 namespace base
 {
-class async_send_queue
+template<typename T>
+class threadsafe_list
 {
 public:
-    void emplace_back(const std::string& buffer)
+    void emplace_back(const T& t)
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        send_queue_.emplace_back(buffer);
+        list_.emplace_back(t);
     }
 
-    std::string front()
+    T front()
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        return send_queue_.front();
+        return list_.front();
     }
 
     void pop_front()
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        send_queue_.pop_front();
+        list_.pop_front();
     }
 
     void clear()
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        send_queue_.clear();
+        list_.clear();
     }
 
     bool empty()
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        return send_queue_.empty();
+        return list_.empty();
     }
 
     std::size_t size()
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        return send_queue_.size();
+        return list_.size();
     }
 
 private:
-    std::list<std::string> send_queue_;
+    std::list<T> list_;
     std::mutex mutex_;
 };
 
