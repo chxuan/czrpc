@@ -18,6 +18,7 @@ public:
 
     std::string serialize(const message_ptr& message)
     {
+        check_message(message);
         return message->SerializeAsString();
     }
 
@@ -32,7 +33,24 @@ public:
         {
             throw std::runtime_error("Parse from string failed");
         }
+        if (!message->IsInitialized())
+        {
+            throw std::runtime_error("Message initialized failed");
+        }
         return message;
+    }
+
+
+    void check_message(const message_ptr& message)
+    {
+        if (message == nullptr)
+        {
+            throw std::runtime_error("Message is nullptr");
+        }
+        if (!message->IsInitialized())
+        {
+            throw std::runtime_error("Message initialized failed");
+        }
     }
 
 private:

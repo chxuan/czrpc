@@ -27,6 +27,7 @@ public:
 
     message_ptr call(const std::string& func_name, const message_ptr& message)
     {
+        serialize_util::singleton::get()->check_message(message);
         try_connect();
         client_flag flag{ serialize_mode::serialize, client_type_ };
         request_content content;
