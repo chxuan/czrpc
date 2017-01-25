@@ -20,7 +20,7 @@ link_directories($ENV{PROTOBUF_LIB_PATH})
 
 add_executable(${OUTPUTNAME} ${DIR_SRCS})
 
-target_link_libraries(${OUTPUTNAME} boost_serialization)
-target_link_libraries(${OUTPUTNAME} boost_system)
-target_link_libraries(${OUTPUTNAME} libprotobuf.so)
+target_link_libraries(${OUTPUTNAME} boost_serialization.a)
+target_link_libraries(${OUTPUTNAME} boost_system.a)
+target_link_libraries(${OUTPUTNAME} libprotobuf.a)
 target_link_libraries(${OUTPUTNAME} pthread)

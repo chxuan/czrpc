@@ -7,14 +7,15 @@ using namespace czrpc::base;
 std::shared_ptr<google::protobuf::Message> request_person_info(const std::shared_ptr<google::protobuf::Message>& in_message)
 {
     in_message->PrintDebugString();
-#if 0
+#if 1
     auto out_message = std::make_shared<response_person_info_message>();
     out_message->set_name("Tom");
     out_message->set_age(21);
-#endif
+#else
     auto out_message = std::make_shared<response_error>();
     out_message->set_error_code(100);
     out_message->set_error_string("Not found person info");
+#endif
     return out_message;
 }
 
