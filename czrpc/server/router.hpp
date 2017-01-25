@@ -338,32 +338,32 @@ private:
     void bind_non_member_func(const std::string& protocol, const Function& func)
     {
         std::lock_guard<std::mutex> lock(map_mutex_);
-        invoker_map_[protocol] = { std::bind(&invoker<Function>::apply, func, 
-                                                std::placeholders::_1, std::placeholders::_2) };
+        invoker_map_.emplace(protocol, invoker_function{ std::bind(&invoker<Function>::apply, 
+                                                                   func, std::placeholders::_1, std::placeholders::_2) });
     }
 
     template<typename Function, typename Self>
     void bind_member_func(const std::string& protocol, const Function& func, Self* self)
     {
         std::lock_guard<std::mutex> lock(map_mutex_);
-        invoker_map_[protocol] = { std::bind(&invoker<Function>::template apply_member<Self>, func, self, 
-                                                std::placeholders::_1, std::placeholders::_2) };
+        invoker_map_.emplace(protocol, invoker_function{ std::bind(&invoker<Function>::template apply_member<Self>, 
+                                                                   func, self, std::placeholders::_1, std::placeholders::_2) });
     }
 
     template<typename Function>
     void bind_non_member_func_raw(const std::string& protocol, const Function& func)
     {
         std::lock_guard<std::mutex> lock(raw_map_mutex_);
-        invoker_raw_map_[protocol] = { std::bind(&invoker_raw<Function>::apply, func, 
-                                                std::placeholders::_1, std::placeholders::_2) };
+        invoker_raw_map_.emplace(protocol, invoker_function_raw{ std::bind(&invoker_raw<Function>::apply, 
+                                                                           func, std::placeholders::_1, std::placeholders::_2) });
     }
 
     template<typename Function, typename Self>
     void bind_member_func_raw(const std::string& protocol, const Function& func, Self* self)
     {
         std::lock_guard<std::mutex> lock(raw_map_mutex_);
-        invoker_raw_map_[protocol] = { std::bind(&invoker_raw<Function>::template apply_member<Self>, func, self, 
-                                                std::placeholders::_1, std::placeholders::_2) };
+        invoker_raw_map_.emplace(protocol, invoker_function_raw{ std::bind(&invoker_raw<Function>::template apply_member<Self>, 
+                                                                           func, self, std::placeholders::_1, std::placeholders::_2) });
     }
 
 public:
