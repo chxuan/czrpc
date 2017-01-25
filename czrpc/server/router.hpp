@@ -20,8 +20,7 @@ namespace server
 class invoker_function
 {
 public:
-    /* using function_t = std::function<void(const std::shared_ptr<google::protobuf::Message>&, std::string&, std::string&)>; */
-    using function_t = std::function<void(const std::string&, std::string&)>;
+    using function_t = std::function<void(const message_ptr&, message_ptr&)>;
     invoker_function() = default;
     invoker_function(const function_t& func) : func_(func) {}
 
@@ -30,15 +29,14 @@ public:
     {
         try
         {
-#if 0
-            std::string out_message_name;
-            std::string out_body;
-            func_(serialize_util::singleton::get()->deserialize(message_name, body), out_message_name, out_body);
-            if (!out_body.empty())
+            message_ptr out_message;
+            func_(serialize_util::singleton::get()->deserialize(message_name, body), out_message);
+            std::string in_message_name = out_message->GetDescriptor()->full_name();
+            std::string in_body = serialize_util::singleton::get()->serialize(out_message);
+            if (!in_message_name.empty() && !in_body.empty())
             {
-                conn->async_write(response_content{ call_id, out_message_name, out_body });
+                conn->async_write(response_content{ call_id, in_message_name, in_body });
             }
-#endif
         }
         catch (std::exception& e)
         {
@@ -202,105 +200,57 @@ public:
     }
 
 private:
-#if 0
-    template<typename Function, typename... Args>
-    static typename std::enable_if<std::is_void<typename std::result_of<Function(Args...)>::type>::value>::type
-    call(const Function& func, const std::tuple<Args...>& tp, std::string&)
-    {
-        call_impl(func, std::make_index_sequence<sizeof...(Args)>{}, tp);
-    }
-
-    template<typename Function, typename... Args>
-    static typename std::enable_if<!std::is_void<typename std::result_of<Function(Args...)>::type>::value>::type
-    call(const Function& func, const std::tuple<Args...>& tp, std::string& result)
-    {
-        auto ret = call_impl(func, std::make_index_sequence<sizeof...(Args)>{}, tp);
-        result = serialize(ret);
-    }
-
-    template<typename Function, std::size_t... I, typename... Args>
-    static auto call_impl(const Function& func, const std::index_sequence<I...>&, const std::tuple<Args...>& tp)
-    {
-        return func(std::get<I>(tp)...);
-    }
-
-    template<typename Function, typename Self, typename... Args>
-    static typename std::enable_if<std::is_void<typename std::result_of<Function(Self, Args...)>::type>::value>::type
-    call_member(const Function& func, Self* self, const std::tuple<Args...>& tp, std::string&)
-    {
-        call_member_impl(func, self, std::make_index_sequence<sizeof...(Args)>{}, tp);
-    }
-
-    template<typename Function, typename Self, typename... Args>
-    static typename std::enable_if<!std::is_void<typename std::result_of<Function(Self, Args...)>::type>::value>::type
-    call_member(const Function& func, Self* self, const std::tuple<Args...>& tp, std::string& result)
-    {
-        auto ret = call_member_impl(func, self, std::make_index_sequence<sizeof...(Args)>{}, tp);
-        result = serialize(ret);
-    }
-
-    template<typename Function, typename Self, std::size_t... I, typename... Args>
-    static auto call_member_impl(const Function& func, Self* self, const std::index_sequence<I...>&, const std::tuple<Args...>& tp)
-    {
-        return (*self.*func)(std::get<I>(tp)...);
-    }
-#endif
-
     template<typename Function>
-    static typename std::enable_if<std::is_void<typename std::result_of<Function(std::string)>::type>::value>::type
-    call(const Function& func, const std::string& body, std::string&, std::string&)
+    static typename std::enable_if<std::is_void<typename std::result_of<Function(const message_ptr&)>::type>::value>::type
+    call(const Function& func, const message_ptr& in_message, message_ptr&)
     {
-        func(body);
+        func(in_message);
     }
 
     template<typename Function>
-    static typename std::enable_if<!std::is_void<typename std::result_of<Function(std::string)>::type>::value>::type
-    call(const Function& func, const std::string& body, std::string& out_message_name, std::string& out_body)
+    static typename std::enable_if<!std::is_void<typename std::result_of<Function(const message_ptr&)>::type>::value>::type
+    call(const Function& func, const message_ptr& in_message, message_ptr& out_message)
     {
-        auto message = func(body);
-        out_message_name = message->GetDescriptor()->full_name();
-        out_body = serialize_util::singleton::get()->serialize(message);
+        out_message = func(in_message);
     }
 
     template<typename Function, typename Self>
-    static typename std::enable_if<std::is_void<typename std::result_of<Function(Self, std::string)>::type>::value>::type
-    call_member(const Function& func, Self* self, const std::string& body, std::string&, std::string&)
+    static typename std::enable_if<std::is_void<typename std::result_of<Function(Self, const message_ptr&)>::type>::value>::type
+    call_member(const Function& func, Self* self, const message_ptr& in_message, message_ptr&)
     {
-        (*self.*func)(body);
+        (*self.*func)(in_message);
     }
 
     template<typename Function, typename Self>
-    static typename std::enable_if<!std::is_void<typename std::result_of<Function(Self, std::string)>::type>::value>::type
-    call_member(const Function& func, Self* self, const std::string& body, std::string& out_message_name, std::string& out_body)
+    static typename std::enable_if<!std::is_void<typename std::result_of<Function(Self, const message_ptr&)>::type>::value>::type
+    call_member(const Function& func, Self* self, const message_ptr& in_message, message_ptr& out_message)
     {
-        auto message = (*self.*func)(body);
-        out_message_name = message->GetDescriptor()->full_name();
-        out_body = serialize_util::singleton::get()->serialize(message);
+        out_message = (*self.*func)(in_message);
     }
 
     template<typename Function>
-    static typename std::enable_if<std::is_void<typename std::result_of<Function(std::string)>::type>::value>::type
+    static typename std::enable_if<std::is_void<typename std::result_of<Function(const std::string&)>::type>::value>::type
     call_raw(const Function& func, const std::string& body, std::string&)
     {
         func(body);
     }
 
     template<typename Function>
-    static typename std::enable_if<!std::is_void<typename std::result_of<Function(std::string)>::type>::value>::type
+    static typename std::enable_if<!std::is_void<typename std::result_of<Function(const std::string&)>::type>::value>::type
     call_raw(const Function& func, const std::string& body, std::string& out_body)
     {
         out_body = func(body);
     }
 
     template<typename Function, typename Self>
-    static typename std::enable_if<std::is_void<typename std::result_of<Function(Self, std::string)>::type>::value>::type
+    static typename std::enable_if<std::is_void<typename std::result_of<Function(Self, const std::string&)>::type>::value>::type
     call_member_raw(const Function& func, Self* self, const std::string& body, std::string&)
     {
         (*self.*func)(body);
     }
 
     template<typename Function, typename Self>
-    static typename std::enable_if<!std::is_void<typename std::result_of<Function(Self, std::string)>::type>::value>::type
+    static typename std::enable_if<!std::is_void<typename std::result_of<Function(Self, const std::string&)>::type>::value>::type
     call_member_raw(const Function& func, Self* self, const std::string& body, std::string& out_body)
     {
         out_body = (*self.*func)(body);
@@ -311,13 +261,11 @@ private:
     class invoker
     {
     public:
-        static void apply(const Function& func, const std::string& body, std::string& out_body)
-        /* static void apply(const Function& func, const std::string& body, */ 
-                          /* std::string& out_message_name, std::string& out_body) */
+        static void apply(const Function& func, const message_ptr& in_message, message_ptr& out_message)
         {
             try
             {
-                /* call(func, body, out_message_name, out_body); */
+                call(func, in_message, out_message);
             }
             catch (std::exception& e)
             {
@@ -326,13 +274,11 @@ private:
         }
 
         template<typename Self>
-        static void apply_member(const Function& func, Self* self, const std::string& body, std::string& out_body)
-        /* static void apply_member(const Function& func, Self* self, const std::string& body, */ 
-                                 /* std::string& out_message_name, std::string& out_body) */
+        static void apply_member(const Function& func, Self* self, const message_ptr& in_message, message_ptr& out_message)
         {
             try
             {
-                /* call_member(func, self, body, out_message_name, out_body); */
+                call_member(func, self, in_message, out_message);
             }
             catch (std::exception& e)
             {
@@ -392,8 +338,6 @@ private:
     void bind_non_member_func(const std::string& protocol, const Function& func)
     {
         std::lock_guard<std::mutex> lock(map_mutex_);
-        /* invoker_map_[protocol] = { std::bind(&invoker<Function>::apply, func, */ 
-                                                /* std::placeholders::_1, std::placeholders::_2, std::placeholders::_3) }; */
         invoker_map_[protocol] = { std::bind(&invoker<Function>::apply, func, 
                                                 std::placeholders::_1, std::placeholders::_2) };
     }
@@ -401,11 +345,9 @@ private:
     template<typename Function, typename Self>
     void bind_member_func(const std::string& protocol, const Function& func, Self* self)
     {
-#if 0
         std::lock_guard<std::mutex> lock(map_mutex_);
         invoker_map_[protocol] = { std::bind(&invoker<Function>::template apply_member<Self>, func, self, 
-                                                std::placeholders::_1, std::placeholders::_2, std::placeholders::_3) };
-#endif
+                                                std::placeholders::_1, std::placeholders::_2) };
     }
 
     template<typename Function>

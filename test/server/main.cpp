@@ -4,7 +4,6 @@
 
 using namespace czrpc::base;
 
-#if 1
 std::shared_ptr<google::protobuf::Message> request_person_info(const std::shared_ptr<google::protobuf::Message>& in_message)
 {
     in_message->PrintDebugString();
@@ -13,14 +12,6 @@ std::shared_ptr<google::protobuf::Message> request_person_info(const std::shared
     out_message->set_age(21);
     return out_message;
 }
-#endif
-
-#if 0
-std::string request_person_info(const std::string& in_message)
-{
-    return in_message;
-}
-#endif
 
 int main()
 {
@@ -30,9 +21,9 @@ int main()
         server.bind("request_person_info", &request_person_info);
         /* server.bind_raw("request_person_info", &request_person_info); */
 
-        std::vector<czrpc::server::endpoint> ep;
-        ep.emplace_back(czrpc::server::endpoint{ "127.0.0.1", 50051 });
-        ep.emplace_back(czrpc::server::endpoint{ "127.0.0.1", 50052 });
+        std::vector<czrpc::base::endpoint> ep;
+        ep.emplace_back(czrpc::base::endpoint{ "127.0.0.1", 50051 });
+        ep.emplace_back(czrpc::base::endpoint{ "127.0.0.1", 50052 });
         server.listen(ep).multithreaded(10).run();
     }
     catch (std::exception& e)

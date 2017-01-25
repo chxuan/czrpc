@@ -25,8 +25,7 @@ public:
         try_connect();
     }
 
-    std::shared_ptr<google::protobuf::Message> call(const std::string& func_name, 
-                                                    const std::shared_ptr<google::protobuf::Message>& message)
+    message_ptr call(const std::string& func_name, const message_ptr& message)
     {
         try_connect();
         client_flag flag{ serialize_mode::serialize, client_type_ };

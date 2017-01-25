@@ -3,7 +3,8 @@
 
 namespace czrpc
 {
-
+namespace base
+{
 constexpr const int max_buffer_len = 20 * 1024 * 1024; // 20MB
 constexpr const int request_header_len = 4 + 4 + 4 + 4 + 4 + 4;
 constexpr const int response_header_len = 4 + 4 + 4;
@@ -99,5 +100,12 @@ struct push_data
 using one_way = void;
 using two_way = std::string;
 
+struct endpoint
+{
+    std::string ip;
+    unsigned short port;
+};
+
+}
 }
 
