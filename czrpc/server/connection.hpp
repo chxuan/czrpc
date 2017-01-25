@@ -51,21 +51,21 @@ public:
         return socket_;
     }
 
-#if 0
-    void write(const std::string& body, const std::string& call_id = "")
+    void write(const response_content& content)
     {
-        unsigned int call_id_len = static_cast<unsigned int>(call_id.size());
-        unsigned int body_len = static_cast<unsigned int>(body.size());
-        if (call_id_len + body_len > max_buffer_len)
+        unsigned int call_id_len = static_cast<unsigned int>(content.call_id.size());
+        unsigned int message_name_len = static_cast<unsigned int>(content.message_name.size());
+        unsigned int body_len = static_cast<unsigned int>(content.body.size());
+        if (call_id_len + message_name_len + body_len > max_buffer_len)
         {
             handle_error();
             throw std::runtime_error("Send data is too big");
         }
 
-        std::string buffer = get_buffer(response_header{ call_id_len, body_len }, call_id, body);
+        response_header header{ call_id_len, message_name_len, body_len };
+        std::string buffer = get_buffer(response_data{ header, content });
         write_impl(buffer);
     }
-#endif
 
     void write(const std::string& protocol, const std::string& body, serialize_mode mode)
     {
