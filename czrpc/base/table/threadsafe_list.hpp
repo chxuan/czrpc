@@ -7,6 +7,8 @@ namespace czrpc
 {
 namespace base
 {
+namespace table
+{
 template<typename T>
 class threadsafe_list
 {
@@ -52,5 +54,6 @@ private:
     std::mutex mutex_;
 };
 
+}
 }
 }

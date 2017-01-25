@@ -9,9 +9,10 @@
 #include "base/atimer.hpp"
 #include "base/scope_guard.hpp"
 #include "base/logger.hpp"
-#include "base/threadsafe_list.hpp"
+#include "base/table/threadsafe_list.hpp"
 
 using namespace czrpc::base;
+using namespace czrpc::base::table;
 
 namespace czrpc
 {

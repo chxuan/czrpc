@@ -11,10 +11,11 @@
 #include "base/atimer.hpp"
 #include "base/scope_guard.hpp"
 #include "base/logger.hpp"
-#include "base/async_send_queue.hpp"
 #include "base/serialize_util.hpp"
+#include "base/table/threadsafe_list.hpp"
 
 using namespace czrpc::base;
+using namespace czrpc::base::table;
 
 namespace czrpc
 {
@@ -345,7 +346,7 @@ private:
     std::mutex mutex_;
     std::mutex conn_mutex_;
 
-    async_send_queue send_queue_;
+    threadsafe_list<std::string> send_queue_;
 };
 
 }
