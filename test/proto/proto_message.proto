@@ -10,3 +10,9 @@ message response_person_info_message
     required int32 age = 2;
 }
 
+message response_error
+{
+    required int32 error_code = 1;
+    required string error_string = 2;
+}
+

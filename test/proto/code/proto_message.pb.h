@@ -33,6 +33,7 @@ void protobuf_ShutdownFile_proto_5fmessage_2eproto();
 
 class request_person_info_message;
 class response_person_info_message;
+class response_error;
 
 // ===================================================================
 
@@ -228,6 +229,103 @@ class response_person_info_message : public ::google::protobuf::Message {
   void InitAsDefaultInstance();
   static response_person_info_message* default_instance_;
 };
+// -------------------------------------------------------------------
+
+class response_error : public ::google::protobuf::Message {
+ public:
+  response_error();
+  virtual ~response_error();
+
+  response_error(const response_error& from);
+
+  inline response_error& operator=(const response_error& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const response_error& default_instance();
+
+  void Swap(response_error* other);
+
+  // implements Message ----------------------------------------------
+
+  response_error* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const response_error& from);
+  void MergeFrom(const response_error& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // required int32 error_code = 1;
+  inline bool has_error_code() const;
+  inline void clear_error_code();
+  static const int kErrorCodeFieldNumber = 1;
+  inline ::google::protobuf::int32 error_code() const;
+  inline void set_error_code(::google::protobuf::int32 value);
+
+  // required string error_string = 2;
+  inline bool has_error_string() const;
+  inline void clear_error_string();
+  static const int kErrorStringFieldNumber = 2;
+  inline const ::std::string& error_string() const;
+  inline void set_error_string(const ::std::string& value);
+  inline void set_error_string(const char* value);
+  inline void set_error_string(const char* value, size_t size);
+  inline ::std::string* mutable_error_string();
+  inline ::std::string* release_error_string();
+  inline void set_allocated_error_string(::std::string* error_string);
+
+  // @@protoc_insertion_point(class_scope:response_error)
+ private:
+  inline void set_has_error_code();
+  inline void clear_has_error_code();
+  inline void set_has_error_string();
+  inline void clear_has_error_string();
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::std::string* error_string_;
+  ::google::protobuf::int32 error_code_;
+
+  mutable int _cached_size_;
+  ::google::protobuf::uint32 _has_bits_[(2 + 31) / 32];
+
+  friend void  protobuf_AddDesc_proto_5fmessage_2eproto();
+  friend void protobuf_AssignDesc_proto_5fmessage_2eproto();
+  friend void protobuf_ShutdownFile_proto_5fmessage_2eproto();
+
+  void InitAsDefaultInstance();
+  static response_error* default_instance_;
+};
 // ===================================================================
 
 
@@ -421,6 +519,102 @@ inline ::google::protobuf::int32 response_person_info_message::age() const {
 inline void response_person_info_message::set_age(::google::protobuf::int32 value) {
   set_has_age();
   age_ = value;
+}
+
+// -------------------------------------------------------------------
+
+// response_error
+
+// required int32 error_code = 1;
+inline bool response_error::has_error_code() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void response_error::set_has_error_code() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void response_error::clear_has_error_code() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void response_error::clear_error_code() {
+  error_code_ = 0;
+  clear_has_error_code();
+}
+inline ::google::protobuf::int32 response_error::error_code() const {
+  return error_code_;
+}
+inline void response_error::set_error_code(::google::protobuf::int32 value) {
+  set_has_error_code();
+  error_code_ = value;
+}
+
+// required string error_string = 2;
+inline bool response_error::has_error_string() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void response_error::set_has_error_string() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void response_error::clear_has_error_string() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void response_error::clear_error_string() {
+  if (error_string_ != &::google::protobuf::internal::kEmptyString) {
+    error_string_->clear();
+  }
+  clear_has_error_string();
+}
+inline const ::std::string& response_error::error_string() const {
+  return *error_string_;
+}
+inline void response_error::set_error_string(const ::std::string& value) {
+  set_has_error_string();
+  if (error_string_ == &::google::protobuf::internal::kEmptyString) {
+    error_string_ = new ::std::string;
+  }
+  error_string_->assign(value);
+}
+inline void response_error::set_error_string(const char* value) {
+  set_has_error_string();
+  if (error_string_ == &::google::protobuf::internal::kEmptyString) {
+    error_string_ = new ::std::string;
+  }
+  error_string_->assign(value);
+}
+inline void response_error::set_error_string(const char* value, size_t size) {
+  set_has_error_string();
+  if (error_string_ == &::google::protobuf::internal::kEmptyString) {
+    error_string_ = new ::std::string;
+  }
+  error_string_->assign(reinterpret_cast<const char*>(value), size);
+}
+inline ::std::string* response_error::mutable_error_string() {
+  set_has_error_string();
+  if (error_string_ == &::google::protobuf::internal::kEmptyString) {
+    error_string_ = new ::std::string;
+  }
+  return error_string_;
+}
+inline ::std::string* response_error::release_error_string() {
+  clear_has_error_string();
+  if (error_string_ == &::google::protobuf::internal::kEmptyString) {
+    return NULL;
+  } else {
+    ::std::string* temp = error_string_;
+    error_string_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+    return temp;
+  }
+}
+inline void response_error::set_allocated_error_string(::std::string* error_string) {
+  if (error_string_ != &::google::protobuf::internal::kEmptyString) {
+    delete error_string_;
+  }
+  if (error_string) {
+    set_has_error_string();
+    error_string_ = error_string;
+  } else {
+    clear_has_error_string();
+    error_string_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+  }
 }
 
 

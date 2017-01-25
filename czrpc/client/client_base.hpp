@@ -256,7 +256,7 @@ private:
     std::vector<char> read_content()
     {
         content_.clear();
-        content_.resize(res_head_.call_id_len + res_head_.body_len);
+        content_.resize(res_head_.call_id_len + res_head_.message_name_len + res_head_.body_len);
         boost::system::error_code ec;
         boost::asio::read(socket_, boost::asio::buffer(content_), ec); 
         if (ec)

@@ -152,14 +152,14 @@ private:
     bool check_head()
     {
         memcpy(&req_head_, req_head_buf_, sizeof(req_head_buf_));
-        unsigned int len = req_head_.call_id_len + req_head_.protocol_len + req_head_.body_len;
+        unsigned int len = req_head_.call_id_len + req_head_.protocol_len + req_head_.message_name_len  + req_head_.body_len;
         return (len > 0 && len < max_buffer_len) ? true : false;
     }
 
     void read_content()
     {
         content_.clear();
-        content_.resize(req_head_.call_id_len + req_head_.protocol_len + req_head_.body_len);
+        content_.resize(req_head_.call_id_len + req_head_.protocol_len + req_head_.message_name_len + req_head_.body_len);
         auto self(this->shared_from_this());
         boost::asio::async_read(socket_, boost::asio::buffer(content_), 
                                 [this, self](boost::system::error_code ec, std::size_t)
