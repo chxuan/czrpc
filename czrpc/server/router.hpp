@@ -24,18 +24,17 @@ public:
     invoker_function() = default;
     invoker_function(const function_t& func) : func_(func) {}
 
-    void operator()(const std::string& call_id, const std::string& message_name, 
-                    const std::string& body, const connection_ptr& conn)
+    void operator()(const request_content& content, const connection_ptr& conn)
     {
         try
         {
             message_ptr out_message;
-            func_(serialize_util::singleton::get()->deserialize(message_name, body), out_message);
+            func_(serialize_util::singleton::get()->deserialize(content.message_name, content.body), out_message);
             std::string in_message_name = out_message->GetDescriptor()->full_name();
             std::string in_body = serialize_util::singleton::get()->serialize(out_message);
             if (!in_message_name.empty() && !in_body.empty())
             {
-                conn->async_write(response_content{ call_id, in_message_name, in_body });
+                conn->async_write(response_content{ content.call_id, in_message_name, in_body });
             }
         }
         catch (std::exception& e)
@@ -56,15 +55,15 @@ public:
     invoker_function_raw() = default;
     invoker_function_raw(const function_t& func) : func_(func) {}
 
-    void operator()(const std::string& call_id, const std::string& body, const connection_ptr& conn)
+    void operator()(const request_content& content, const connection_ptr& conn)
     {
         try
         {
             std::string out_body;
-            func_(body, out_body);
+            func_(content.body, out_body);
             if (!out_body.empty())
             {
-                conn->async_write(response_content{ call_id, "", out_body });
+                conn->async_write(response_content{ content.call_id, "", out_body });
             }
         }
         catch (std::exception& e)
@@ -164,7 +163,7 @@ public:
                 {
                     return false;
                 }
-                threadpool_.add_task(iter->second, content.call_id, content.message_name, content.body, conn);
+                threadpool_.add_task(iter->second, content, conn);
             }
             else if (flag.mode == serialize_mode::non_serialize)
             {
@@ -174,7 +173,7 @@ public:
                 {
                     return false;
                 }
-                threadpool_.add_task(iter->second, content.call_id, content.body, conn);           
+                threadpool_.add_task(iter->second, content, conn);           
             }
             else
             {
