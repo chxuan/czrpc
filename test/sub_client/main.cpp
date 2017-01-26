@@ -6,7 +6,8 @@ using namespace czrpc::base;
 
 void auto_weather(const std::shared_ptr<google::protobuf::Message>& in_message)
 {
-    in_message->PrintDebugString();
+    auto message = std::dynamic_pointer_cast<auto_weather_message>(in_message);
+    message->PrintDebugString();
 }
 
 void auto_song(const std::string& str)
