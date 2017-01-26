@@ -24,12 +24,11 @@ public:
     sub_invoker_function() = default;
     sub_invoker_function(const function_t& func) : func_(func) {}
 
-    void operator()(const std::string& body)
+    void operator()(const push_content& content)
     {
         try
         {
-            /* parser_util parser(body); */
-            /* func_(parser); */
+            func_(serialize_util::singleton::get()->deserialize(content.message_name, content.body));
         }
         catch (std::exception& e)
         {
@@ -48,11 +47,11 @@ public:
     sub_invoker_function_raw() = default;
     sub_invoker_function_raw(const function_t& func) : func_(func) {}
 
-    void operator()(const std::string& body)
+    void operator()(const push_content& content)
     {
         try
         {
-            func_(body);
+            func_(content.body);
         }
         catch (std::exception& e)
         {
@@ -138,7 +137,7 @@ public:
             {
                 return false;
             }
-            iter->second(content.body);
+            iter->second(content);
         }
         else if (mode == serialize_mode::non_serialize)
         {
@@ -148,7 +147,7 @@ public:
             {
                 return false;
             }
-            iter->second(content.body);
+            iter->second(content);
         }
         return true;
     }
@@ -269,28 +268,28 @@ private:
     void bind_non_member_func(const std::string& protocol, const Function& func)
     {
         std::lock_guard<std::mutex> lock(map_mutex_);
-        invoker_map_[protocol] = { std::bind(&invoker<Function>::apply, func, std::placeholders::_1) };
+        invoker_map_.emplace(protocol, sub_invoker_function{ std::bind(&invoker<Function>::apply, func, std::placeholders::_1) });
     }
 
     template<typename Function, typename Self>
     void bind_member_func(const std::string& protocol, const Function& func, Self* self)
     {
         std::lock_guard<std::mutex> lock(map_mutex_);
-        invoker_map_[protocol] = { std::bind(&invoker<Function>::template apply_member<Self>, func, self, std::placeholders::_1) };
+        invoker_map_.emplace(protocol, sub_invoker_function{ std::bind(&invoker<Function>::template apply_member<Self>, func, self, std::placeholders::_1) });
     }
 
     template<typename Function>
     void bind_non_member_func_raw(const std::string& protocol, const Function& func)
     {
         std::lock_guard<std::mutex> lock(raw_map_mutex_);
-        invoker_raw_map_[protocol] = { std::bind(&invoker_raw<Function>::apply, func, std::placeholders::_1) };
+        invoker_raw_map_.emplace(protocol, sub_invoker_function_raw{ std::bind(&invoker_raw<Function>::apply, func, std::placeholders::_1) });
     }
 
     template<typename Function, typename Self>
     void bind_member_func_raw(const std::string& protocol, const Function& func, Self* self)
     {
         std::lock_guard<std::mutex> lock(raw_map_mutex_);
-        invoker_raw_map_[protocol] = { std::bind(&invoker_raw<Function>::template apply_member<Self>, func, self, std::placeholders::_1) };
+        invoker_raw_map_.emplace(protocol, sub_invoker_function_raw{ std::bind(&invoker_raw<Function>::template apply_member<Self>, func, self, std::placeholders::_1) });
     }
 
 private:
