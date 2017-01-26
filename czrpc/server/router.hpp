@@ -184,7 +184,8 @@ public:
         }
         else if (flag.type == client_type::pub_client)
         {
-            threadpool_.add_task(pub_coming_helper_, content.protocol, content.body, flag.mode);
+            push_content ctx { content.protocol, content.message_name, content.body };
+            threadpool_.add_task(pub_coming_helper_, flag.mode, ctx);
         }
         else if (flag.type == client_type::sub_client)
         {
@@ -319,9 +320,9 @@ private:
 
     struct pub_coming_helper
     {
-        void operator()(const std::string& topic_name, const std::string& body, serialize_mode mode)
+        void operator()(serialize_mode mode, const push_content& content)
         {
-            router::singleton::get()->publisher_coming_(topic_name, body, mode);
+            router::singleton::get()->publisher_coming_(mode, content);
         }
     };
 
@@ -367,7 +368,7 @@ private:
     }
 
 public:
-    using pub_comming_callback = std::function<void(const std::string&, const std::string&, serialize_mode)>;
+    using pub_comming_callback = std::function<void(serialize_mode, const push_content&)>;
     using sub_comming_callback = std::function<void(const std::string&, const std::string&, const connection_ptr&)>;
     pub_comming_callback publisher_coming_ = nullptr;
     sub_comming_callback subscriber_coming_ = nullptr;

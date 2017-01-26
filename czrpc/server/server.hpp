@@ -135,8 +135,7 @@ private:
 
     void set_pub_sub_callback()
     {
-        router::singleton::get()->publisher_coming_ = std::bind(&server::publisher_coming, 
-                                                                this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+        router::singleton::get()->publisher_coming_ = std::bind(&server::publisher_coming, this, std::placeholders::_1, std::placeholders::_2);
         router::singleton::get()->subscriber_coming_ = std::bind(&server::subscriber_coming, 
                                                                  this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
     }
@@ -152,15 +151,15 @@ private:
         connection_manager::singleton::get()->remove_connection(conn);
     }
 
-    void publisher_coming(const std::string& topic_name, const std::string& body, serialize_mode mode)
+    void publisher_coming(serialize_mode mode, const push_content& content)
     {
-        for (auto& conn : topic_manager::singleton::get()->get_connection_by_topic(topic_name))
+        for (auto& conn : topic_manager::singleton::get()->get_connection_by_topic(content.protocol))
         {
             try
             {
                 if (!conn.expired())
                 {
-                    conn.lock()->async_write(topic_name, body, mode);
+                    conn.lock()->async_write(mode, content);
                 }
             }
             catch (std::exception& e)

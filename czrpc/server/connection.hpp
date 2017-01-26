@@ -68,17 +68,19 @@ public:
         write_impl(buffer);
     }
 
-    void write(const std::string& protocol, const std::string& body, serialize_mode mode)
+    void write(serialize_mode mode, const push_content& content)
     {
-        unsigned int protocol_len = static_cast<unsigned int>(protocol.size());
-        unsigned int body_len = static_cast<unsigned int>(body.size());
-        if (protocol_len + body_len > max_buffer_len)
+        unsigned int protocol_len = static_cast<unsigned int>(content.protocol.size());
+        unsigned int message_name_len = static_cast<unsigned int>(content.message_name.size());
+        unsigned int body_len = static_cast<unsigned int>(content.body.size());
+        if (protocol_len + message_name_len + body_len > max_buffer_len)
         {
             handle_error();
             throw std::runtime_error("Send data is too big");
         }
 
-        std::string buffer = get_buffer(push_header{ protocol_len,  body_len, mode }, protocol, body);
+        push_header header{ protocol_len, message_name_len, body_len, mode };
+        std::string buffer = get_buffer(push_data{ header, content });
         write_impl(buffer);
     }
 
@@ -98,17 +100,19 @@ public:
         async_write_impl(buffer);
     }
 
-    void async_write(const std::string& protocol, const std::string& body, serialize_mode mode)
+    void async_write(serialize_mode mode, const push_content& content)
     {
-        unsigned int protocol_len = static_cast<unsigned int>(protocol.size());
-        unsigned int body_len = static_cast<unsigned int>(body.size());
-        if (protocol_len + body_len > max_buffer_len)
+        unsigned int protocol_len = static_cast<unsigned int>(content.protocol.size());
+        unsigned int message_name_len = static_cast<unsigned int>(content.message_name.size());
+        unsigned int body_len = static_cast<unsigned int>(content.body.size());
+        if (protocol_len + message_name_len + body_len > max_buffer_len)
         {
             handle_error();
             throw std::runtime_error("Send data is too big");
         }
 
-        std::string buffer = get_buffer(push_header{ protocol_len,  body_len, mode }, protocol, body);
+        push_header header{ protocol_len, message_name_len, body_len, mode };
+        std::string buffer = get_buffer(push_data{ header, content });
         async_write_impl(buffer);
     }
 
@@ -212,12 +216,13 @@ private:
         return std::move(buffer);
     }
 
-    std::string get_buffer(const push_header& head, const std::string& protocol, const std::string& body)
+    std::string get_buffer(const push_data& data)
     {
         std::string buffer;
-        buffer.append(reinterpret_cast<const char*>(&head), sizeof(head));
-        buffer.append(protocol);
-        buffer.append(body);
+        buffer.append(reinterpret_cast<const char*>(&data.header), sizeof(data.header));
+        buffer.append(data.content.protocol);
+        buffer.append(data.content.message_name);
+        buffer.append(data.content.body);
         return std::move(buffer);
     }
 
