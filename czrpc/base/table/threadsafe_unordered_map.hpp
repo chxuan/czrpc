@@ -20,7 +20,7 @@ public:
         map_.emplace(key, value);
     }
 
-    bool emplace_or_update(const Key& key, const Value& value, Value& out_value = nullptr)
+    bool emplace_or_update(const Key& key, const Value& value, Value* out_value = nullptr)
     {
         std::lock_guard<std::mutex> lock(mutex_);
         bool is_update = false;
