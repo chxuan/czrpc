@@ -24,6 +24,9 @@ const ::google::protobuf::internal::GeneratedMessageReflection*
 const ::google::protobuf::Descriptor* response_person_info_message_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
   response_person_info_message_reflection_ = NULL;
+const ::google::protobuf::Descriptor* auto_weather_message_descriptor_ = NULL;
+const ::google::protobuf::internal::GeneratedMessageReflection*
+  auto_weather_message_reflection_ = NULL;
 const ::google::protobuf::Descriptor* response_error_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
   response_error_reflection_ = NULL;
@@ -69,7 +72,23 @@ void protobuf_AssignDesc_proto_5fmessage_2eproto() {
       ::google::protobuf::DescriptorPool::generated_pool(),
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(response_person_info_message));
-  response_error_descriptor_ = file->message_type(2);
+  auto_weather_message_descriptor_ = file->message_type(2);
+  static const int auto_weather_message_offsets_[2] = {
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(auto_weather_message, city_name_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(auto_weather_message, weather_),
+  };
+  auto_weather_message_reflection_ =
+    new ::google::protobuf::internal::GeneratedMessageReflection(
+      auto_weather_message_descriptor_,
+      auto_weather_message::default_instance_,
+      auto_weather_message_offsets_,
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(auto_weather_message, _has_bits_[0]),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(auto_weather_message, _unknown_fields_),
+      -1,
+      ::google::protobuf::DescriptorPool::generated_pool(),
+      ::google::protobuf::MessageFactory::generated_factory(),
+      sizeof(auto_weather_message));
+  response_error_descriptor_ = file->message_type(3);
   static const int response_error_offsets_[2] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(response_error, error_code_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(response_error, error_string_),
@@ -102,6 +121,8 @@ void protobuf_RegisterTypes(const ::std::string&) {
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
     response_person_info_message_descriptor_, &response_person_info_message::default_instance());
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
+    auto_weather_message_descriptor_, &auto_weather_message::default_instance());
+  ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
     response_error_descriptor_, &response_error::default_instance());
 }
 
@@ -112,6 +133,8 @@ void protobuf_ShutdownFile_proto_5fmessage_2eproto() {
   delete request_person_info_message_reflection_;
   delete response_person_info_message::default_instance_;
   delete response_person_info_message_reflection_;
+  delete auto_weather_message::default_instance_;
+  delete auto_weather_message_reflection_;
   delete response_error::default_instance_;
   delete response_error_reflection_;
 }
@@ -124,17 +147,21 @@ void protobuf_AddDesc_proto_5fmessage_2eproto() {
 
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
     "\n\023proto_message.proto\"8\n\033request_person_"
-    "info_message\022\014\n\004name\030\001 \002(\t\022\013\n\003age\030\002 \002(\005\""
+    "info_message\022\014\n\004name\030\001 \001(\t\022\013\n\003age\030\002 \001(\005\""
     "9\n\034response_person_info_message\022\014\n\004name\030"
-    "\001 \002(\t\022\013\n\003age\030\002 \002(\005\":\n\016response_error\022\022\n\n"
-    "error_code\030\001 \002(\005\022\024\n\014error_string\030\002 \002(\t", 198);
+    "\001 \001(\t\022\013\n\003age\030\002 \001(\005\":\n\024auto_weather_messa"
+    "ge\022\021\n\tcity_name\030\001 \001(\t\022\017\n\007weather\030\002 \001(\t\":"
+    "\n\016response_error\022\022\n\nerror_code\030\001 \001(\005\022\024\n\014"
+    "error_string\030\002 \001(\t", 258);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "proto_message.proto", &protobuf_RegisterTypes);
   request_person_info_message::default_instance_ = new request_person_info_message();
   response_person_info_message::default_instance_ = new response_person_info_message();
+  auto_weather_message::default_instance_ = new auto_weather_message();
   response_error::default_instance_ = new response_error();
   request_person_info_message::default_instance_->InitAsDefaultInstance();
   response_person_info_message::default_instance_->InitAsDefaultInstance();
+  auto_weather_message::default_instance_->InitAsDefaultInstance();
   response_error::default_instance_->InitAsDefaultInstance();
   ::google::protobuf::internal::OnShutdown(&protobuf_ShutdownFile_proto_5fmessage_2eproto);
 }
@@ -226,7 +253,7 @@ bool request_person_info_message::MergePartialFromCodedStream(
   ::google::protobuf::uint32 tag;
   while ((tag = input->ReadTag()) != 0) {
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // required string name = 1;
+      // optional string name = 1;
       case 1: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
@@ -242,7 +269,7 @@ bool request_person_info_message::MergePartialFromCodedStream(
         break;
       }
 
-      // required int32 age = 2;
+      // optional int32 age = 2;
       case 2: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
@@ -276,7 +303,7 @@ bool request_person_info_message::MergePartialFromCodedStream(
 
 void request_person_info_message::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // required string name = 1;
+  // optional string name = 1;
   if (has_name()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8String(
       this->name().data(), this->name().length(),
@@ -285,7 +312,7 @@ void request_person_info_message::SerializeWithCachedSizes(
       1, this->name(), output);
   }
 
-  // required int32 age = 2;
+  // optional int32 age = 2;
   if (has_age()) {
     ::google::protobuf::internal::WireFormatLite::WriteInt32(2, this->age(), output);
   }
@@ -298,7 +325,7 @@ void request_person_info_message::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* request_person_info_message::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
-  // required string name = 1;
+  // optional string name = 1;
   if (has_name()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8String(
       this->name().data(), this->name().length(),
@@ -308,7 +335,7 @@ void request_person_info_message::SerializeWithCachedSizes(
         1, this->name(), target);
   }
 
-  // required int32 age = 2;
+  // optional int32 age = 2;
   if (has_age()) {
     target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(2, this->age(), target);
   }
@@ -324,14 +351,14 @@ int request_person_info_message::ByteSize() const {
   int total_size = 0;
 
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    // required string name = 1;
+    // optional string name = 1;
     if (has_name()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::StringSize(
           this->name());
     }
 
-    // required int32 age = 2;
+    // optional int32 age = 2;
     if (has_age()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::Int32Size(
@@ -388,7 +415,6 @@ void request_person_info_message::CopyFrom(const request_person_info_message& fr
 }
 
 bool request_person_info_message::IsInitialized() const {
-  if ((_has_bits_[0] & 0x00000003) != 0x00000003) return false;
 
   return true;
 }
@@ -492,7 +518,7 @@ bool response_person_info_message::MergePartialFromCodedStream(
   ::google::protobuf::uint32 tag;
   while ((tag = input->ReadTag()) != 0) {
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // required string name = 1;
+      // optional string name = 1;
       case 1: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
@@ -508,7 +534,7 @@ bool response_person_info_message::MergePartialFromCodedStream(
         break;
       }
 
-      // required int32 age = 2;
+      // optional int32 age = 2;
       case 2: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
@@ -542,7 +568,7 @@ bool response_person_info_message::MergePartialFromCodedStream(
 
 void response_person_info_message::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // required string name = 1;
+  // optional string name = 1;
   if (has_name()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8String(
       this->name().data(), this->name().length(),
@@ -551,7 +577,7 @@ void response_person_info_message::SerializeWithCachedSizes(
       1, this->name(), output);
   }
 
-  // required int32 age = 2;
+  // optional int32 age = 2;
   if (has_age()) {
     ::google::protobuf::internal::WireFormatLite::WriteInt32(2, this->age(), output);
   }
@@ -564,7 +590,7 @@ void response_person_info_message::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* response_person_info_message::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
-  // required string name = 1;
+  // optional string name = 1;
   if (has_name()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8String(
       this->name().data(), this->name().length(),
@@ -574,7 +600,7 @@ void response_person_info_message::SerializeWithCachedSizes(
         1, this->name(), target);
   }
 
-  // required int32 age = 2;
+  // optional int32 age = 2;
   if (has_age()) {
     target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(2, this->age(), target);
   }
@@ -590,14 +616,14 @@ int response_person_info_message::ByteSize() const {
   int total_size = 0;
 
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    // required string name = 1;
+    // optional string name = 1;
     if (has_name()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::StringSize(
           this->name());
     }
 
-    // required int32 age = 2;
+    // optional int32 age = 2;
     if (has_age()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::Int32Size(
@@ -654,7 +680,6 @@ void response_person_info_message::CopyFrom(const response_person_info_message& 
 }
 
 bool response_person_info_message::IsInitialized() const {
-  if ((_has_bits_[0] & 0x00000003) != 0x00000003) return false;
 
   return true;
 }
@@ -674,6 +699,288 @@ void response_person_info_message::Swap(response_person_info_message* other) {
   ::google::protobuf::Metadata metadata;
   metadata.descriptor = response_person_info_message_descriptor_;
   metadata.reflection = response_person_info_message_reflection_;
+  return metadata;
+}
+
+
+// ===================================================================
+
+#ifndef _MSC_VER
+const int auto_weather_message::kCityNameFieldNumber;
+const int auto_weather_message::kWeatherFieldNumber;
+#endif  // !_MSC_VER
+
+auto_weather_message::auto_weather_message()
+  : ::google::protobuf::Message() {
+  SharedCtor();
+}
+
+void auto_weather_message::InitAsDefaultInstance() {
+}
+
+auto_weather_message::auto_weather_message(const auto_weather_message& from)
+  : ::google::protobuf::Message() {
+  SharedCtor();
+  MergeFrom(from);
+}
+
+void auto_weather_message::SharedCtor() {
+  _cached_size_ = 0;
+  city_name_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+  weather_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+  ::memset(_has_bits_, 0, sizeof(_has_bits_));
+}
+
+auto_weather_message::~auto_weather_message() {
+  SharedDtor();
+}
+
+void auto_weather_message::SharedDtor() {
+  if (city_name_ != &::google::protobuf::internal::kEmptyString) {
+    delete city_name_;
+  }
+  if (weather_ != &::google::protobuf::internal::kEmptyString) {
+    delete weather_;
+  }
+  if (this != default_instance_) {
+  }
+}
+
+void auto_weather_message::SetCachedSize(int size) const {
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+}
+const ::google::protobuf::Descriptor* auto_weather_message::descriptor() {
+  protobuf_AssignDescriptorsOnce();
+  return auto_weather_message_descriptor_;
+}
+
+const auto_weather_message& auto_weather_message::default_instance() {
+  if (default_instance_ == NULL) protobuf_AddDesc_proto_5fmessage_2eproto();
+  return *default_instance_;
+}
+
+auto_weather_message* auto_weather_message::default_instance_ = NULL;
+
+auto_weather_message* auto_weather_message::New() const {
+  return new auto_weather_message;
+}
+
+void auto_weather_message::Clear() {
+  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    if (has_city_name()) {
+      if (city_name_ != &::google::protobuf::internal::kEmptyString) {
+        city_name_->clear();
+      }
+    }
+    if (has_weather()) {
+      if (weather_ != &::google::protobuf::internal::kEmptyString) {
+        weather_->clear();
+      }
+    }
+  }
+  ::memset(_has_bits_, 0, sizeof(_has_bits_));
+  mutable_unknown_fields()->Clear();
+}
+
+bool auto_weather_message::MergePartialFromCodedStream(
+    ::google::protobuf::io::CodedInputStream* input) {
+#define DO_(EXPRESSION) if (!(EXPRESSION)) return false
+  ::google::protobuf::uint32 tag;
+  while ((tag = input->ReadTag()) != 0) {
+    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
+      // optional string city_name = 1;
+      case 1: {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_city_name()));
+          ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+            this->city_name().data(), this->city_name().length(),
+            ::google::protobuf::internal::WireFormat::PARSE);
+        } else {
+          goto handle_uninterpreted;
+        }
+        if (input->ExpectTag(18)) goto parse_weather;
+        break;
+      }
+
+      // optional string weather = 2;
+      case 2: {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
+         parse_weather:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_weather()));
+          ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+            this->weather().data(), this->weather().length(),
+            ::google::protobuf::internal::WireFormat::PARSE);
+        } else {
+          goto handle_uninterpreted;
+        }
+        if (input->ExpectAtEnd()) return true;
+        break;
+      }
+
+      default: {
+      handle_uninterpreted:
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
+          return true;
+        }
+        DO_(::google::protobuf::internal::WireFormat::SkipField(
+              input, tag, mutable_unknown_fields()));
+        break;
+      }
+    }
+  }
+  return true;
+#undef DO_
+}
+
+void auto_weather_message::SerializeWithCachedSizes(
+    ::google::protobuf::io::CodedOutputStream* output) const {
+  // optional string city_name = 1;
+  if (has_city_name()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+      this->city_name().data(), this->city_name().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE);
+    ::google::protobuf::internal::WireFormatLite::WriteString(
+      1, this->city_name(), output);
+  }
+
+  // optional string weather = 2;
+  if (has_weather()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+      this->weather().data(), this->weather().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE);
+    ::google::protobuf::internal::WireFormatLite::WriteString(
+      2, this->weather(), output);
+  }
+
+  if (!unknown_fields().empty()) {
+    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
+        unknown_fields(), output);
+  }
+}
+
+::google::protobuf::uint8* auto_weather_message::SerializeWithCachedSizesToArray(
+    ::google::protobuf::uint8* target) const {
+  // optional string city_name = 1;
+  if (has_city_name()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+      this->city_name().data(), this->city_name().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE);
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        1, this->city_name(), target);
+  }
+
+  // optional string weather = 2;
+  if (has_weather()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+      this->weather().data(), this->weather().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE);
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        2, this->weather(), target);
+  }
+
+  if (!unknown_fields().empty()) {
+    target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
+        unknown_fields(), target);
+  }
+  return target;
+}
+
+int auto_weather_message::ByteSize() const {
+  int total_size = 0;
+
+  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    // optional string city_name = 1;
+    if (has_city_name()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+          this->city_name());
+    }
+
+    // optional string weather = 2;
+    if (has_weather()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+          this->weather());
+    }
+
+  }
+  if (!unknown_fields().empty()) {
+    total_size +=
+      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
+        unknown_fields());
+  }
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = total_size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+  return total_size;
+}
+
+void auto_weather_message::MergeFrom(const ::google::protobuf::Message& from) {
+  GOOGLE_CHECK_NE(&from, this);
+  const auto_weather_message* source =
+    ::google::protobuf::internal::dynamic_cast_if_available<const auto_weather_message*>(
+      &from);
+  if (source == NULL) {
+    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
+  } else {
+    MergeFrom(*source);
+  }
+}
+
+void auto_weather_message::MergeFrom(const auto_weather_message& from) {
+  GOOGLE_CHECK_NE(&from, this);
+  if (from._has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    if (from.has_city_name()) {
+      set_city_name(from.city_name());
+    }
+    if (from.has_weather()) {
+      set_weather(from.weather());
+    }
+  }
+  mutable_unknown_fields()->MergeFrom(from.unknown_fields());
+}
+
+void auto_weather_message::CopyFrom(const ::google::protobuf::Message& from) {
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+void auto_weather_message::CopyFrom(const auto_weather_message& from) {
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool auto_weather_message::IsInitialized() const {
+
+  return true;
+}
+
+void auto_weather_message::Swap(auto_weather_message* other) {
+  if (other != this) {
+    std::swap(city_name_, other->city_name_);
+    std::swap(weather_, other->weather_);
+    std::swap(_has_bits_[0], other->_has_bits_[0]);
+    _unknown_fields_.Swap(&other->_unknown_fields_);
+    std::swap(_cached_size_, other->_cached_size_);
+  }
+}
+
+::google::protobuf::Metadata auto_weather_message::GetMetadata() const {
+  protobuf_AssignDescriptorsOnce();
+  ::google::protobuf::Metadata metadata;
+  metadata.descriptor = auto_weather_message_descriptor_;
+  metadata.reflection = auto_weather_message_reflection_;
   return metadata;
 }
 
@@ -758,7 +1065,7 @@ bool response_error::MergePartialFromCodedStream(
   ::google::protobuf::uint32 tag;
   while ((tag = input->ReadTag()) != 0) {
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // required int32 error_code = 1;
+      // optional int32 error_code = 1;
       case 1: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
@@ -773,7 +1080,7 @@ bool response_error::MergePartialFromCodedStream(
         break;
       }
 
-      // required string error_string = 2;
+      // optional string error_string = 2;
       case 2: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
@@ -808,12 +1115,12 @@ bool response_error::MergePartialFromCodedStream(
 
 void response_error::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // required int32 error_code = 1;
+  // optional int32 error_code = 1;
   if (has_error_code()) {
     ::google::protobuf::internal::WireFormatLite::WriteInt32(1, this->error_code(), output);
   }
 
-  // required string error_string = 2;
+  // optional string error_string = 2;
   if (has_error_string()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8String(
       this->error_string().data(), this->error_string().length(),
@@ -830,12 +1137,12 @@ void response_error::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* response_error::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
-  // required int32 error_code = 1;
+  // optional int32 error_code = 1;
   if (has_error_code()) {
     target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(1, this->error_code(), target);
   }
 
-  // required string error_string = 2;
+  // optional string error_string = 2;
   if (has_error_string()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8String(
       this->error_string().data(), this->error_string().length(),
@@ -856,14 +1163,14 @@ int response_error::ByteSize() const {
   int total_size = 0;
 
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    // required int32 error_code = 1;
+    // optional int32 error_code = 1;
     if (has_error_code()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::Int32Size(
           this->error_code());
     }
 
-    // required string error_string = 2;
+    // optional string error_string = 2;
     if (has_error_string()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::StringSize(
@@ -920,7 +1227,6 @@ void response_error::CopyFrom(const response_error& from) {
 }
 
 bool response_error::IsInitialized() const {
-  if ((_has_bits_[0] & 0x00000003) != 0x00000003) return false;
 
   return true;
 }

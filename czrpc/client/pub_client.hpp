@@ -22,14 +22,15 @@ public:
         try_connect();
     }
 
-    template<typename... Args>
-    void publish(const std::string& topic_name, Args&&... args)
+    void publish(const std::string& topic_name, const message_ptr& message)
     {
+        serialize_util::singleton::get()->check_message(message);
         try_connect();
         client_flag flag{ serialize_mode::serialize, client_type_ };
         request_content content;
         content.protocol = topic_name;
-        content.body = serialize(std::forward<Args>(args)...);
+        content.message_name = message->GetDescriptor()->full_name();
+        content.body = serialize_util::singleton::get()->serialize(message);
         call_one_way(flag, content);
     }
 
@@ -43,14 +44,15 @@ public:
         call_one_way(flag, content);
     }
 
-    template<typename... Args>
-    void async_publish(const std::string& topic_name, Args&&... args)
+    void async_publish(const std::string& topic_name, const message_ptr& message)
     {
+        serialize_util::singleton::get()->check_message(message);
         try_connect();
         client_flag flag{ serialize_mode::serialize, client_type_ };
         request_content content;
         content.protocol = topic_name;
-        content.body = serialize(std::forward<Args>(args)...);
+        content.message_name = message->GetDescriptor()->full_name();
+        content.body = serialize_util::singleton::get()->serialize(message);
         async_call_one_way(flag, content);
     }
 
