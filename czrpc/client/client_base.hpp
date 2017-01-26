@@ -252,6 +252,10 @@ private:
         {
             throw std::runtime_error("Body len is too big");
         }
+        if (res_head_.error_code != rpc_error_code::ok)
+        {
+            throw std::runtime_error(get_rpc_error_string(res_head_.error_code));
+        }
     }
 
     std::vector<char> read_content()

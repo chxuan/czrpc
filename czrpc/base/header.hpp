@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <unordered_map>
 
 namespace czrpc
 {
@@ -7,7 +8,7 @@ namespace base
 {
 constexpr const int max_buffer_len = 20 * 1024 * 1024; // 20MB
 constexpr const int request_header_len = 4 + 4 + 4 + 4 + 4 + 4;
-constexpr const int response_header_len = 4 + 4 + 4;
+constexpr const int response_header_len = 4 + 4 + 4 + 4;
 constexpr const int push_header_len = 4 + 4 + 4 + 4;
 const std::string subscribe_topic_flag = "1";
 const std::string cancel_subscribe_topic_flag = "0";
@@ -58,11 +59,18 @@ struct request_data
     request_content content;
 };
 
+enum class rpc_error_code : int 
+{
+    ok = 0,
+    route_failed = 1
+};
+
 struct response_header
 {
     unsigned int call_id_len;
     unsigned int message_name_len;
     unsigned int body_len;
+    rpc_error_code error_code;
 };
 
 struct response_content
@@ -104,6 +112,22 @@ struct endpoint
     std::string ip;
     unsigned short port;
 };
+
+static std::unordered_map<int, std::string> rpc_error_map
+{
+    {static_cast<int>(rpc_error_code::ok), "OK"},
+    {static_cast<int>(rpc_error_code::route_failed), "Route failed"}
+};
+
+static std::string get_rpc_error_string(rpc_error_code error_code)
+{
+    auto iter = rpc_error_map.find(static_cast<int>(error_code));
+    if (iter != rpc_error_map.end())
+    {
+        return iter->second;
+    }
+    return "";
+}
 
 }
 }

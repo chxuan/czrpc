@@ -161,6 +161,7 @@ public:
                 auto iter = invoker_map_.find(content.protocol);
                 if (iter == invoker_map_.end())
                 {
+                    log_warn("Route failed, not found this protocol: {}", content.protocol);
                     return false;
                 }
                 threadpool_.add_task(iter->second, content, conn);
@@ -171,6 +172,7 @@ public:
                 auto iter = invoker_raw_map_.find(content.protocol);
                 if (iter == invoker_raw_map_.end())
                 {
+                    log_warn("Route failed, not found this protocol: {}", content.protocol);
                     return false;
                 }
                 threadpool_.add_task(iter->second, content, conn);           

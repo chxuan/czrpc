@@ -52,7 +52,7 @@ public:
         return socket_;
     }
 
-    void write(const response_content& content)
+    void write(const response_content& content, rpc_error_code error_code = rpc_error_code::ok)
     {
         unsigned int call_id_len = static_cast<unsigned int>(content.call_id.size());
         unsigned int message_name_len = static_cast<unsigned int>(content.message_name.size());
@@ -63,7 +63,7 @@ public:
             throw std::runtime_error("Send data is too big");
         }
 
-        response_header header{ call_id_len, message_name_len, body_len };
+        response_header header{ call_id_len, message_name_len, body_len, error_code };
         std::string buffer = get_buffer(response_data{ header, content });
         write_impl(buffer);
     }
@@ -84,7 +84,7 @@ public:
         write_impl(buffer);
     }
 
-    void async_write(const response_content& content)
+    void async_write(const response_content& content, rpc_error_code error_code = rpc_error_code::ok)
     {
         unsigned int call_id_len = static_cast<unsigned int>(content.call_id.size());
         unsigned int message_name_len = static_cast<unsigned int>(content.message_name.size());
@@ -95,7 +95,7 @@ public:
             throw std::runtime_error("Send data is too big");
         }
 
-        response_header header{ call_id_len, message_name_len, body_len };
+        response_header header{ call_id_len, message_name_len, body_len, error_code };
         std::string buffer = get_buffer(response_data{ header, content });
         async_write_impl(buffer);
     }
@@ -192,7 +192,7 @@ private:
             bool ok = route_(content, req_head_.flag, self);
             if (!ok)
             {
-                log_warn("Router failed");
+                response_error(rpc_error_code::route_failed);
                 return;
             }
             guard.dismiss();
@@ -281,6 +281,12 @@ private:
         {
             handle_error_(this->shared_from_this());
         }
+    }
+
+    void response_error(rpc_error_code error_code)
+    {
+        response_content content;
+        async_write(content, error_code);
     }
 
 private:

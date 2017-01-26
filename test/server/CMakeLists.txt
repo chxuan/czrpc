@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 project(server)
 
 set(OUTPUTNAME server)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-deprecated -Wno-comment -Wno-unused-local-typedefs -Wno-maybe-uninitialized -Wno-unused-variable -g -O3 -std=c++14")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-unused-function -Wno-deprecated -Wno-comment -Wno-unused-local-typedefs -Wno-maybe-uninitialized -Wno-unused-variable -g -O3 -std=c++14")
 
 aux_source_directory(. DIR_SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/../proto/code DIR_SRCS)
