@@ -3,7 +3,10 @@
 #include <unordered_map>
 #include <mutex>
 #include "base/common_util.hpp"
+#include "base/table/threadsafe_unordered_map.hpp"
 #include "client_base.hpp"
+
+using namespace czrpc::base::table;
 
 namespace czrpc
 {
@@ -143,7 +146,6 @@ private:
             else
             {
                 log_warn(get_rpc_error_string(res_head_.error_code));
-                std::lock_guard<std::mutex> lock(task_mutex_);
                 task_map_.erase(content.call_id);
             }
         });
@@ -151,18 +153,16 @@ private:
 
     void add_bind_func(const std::string& call_id, const task_t& task)
     {
-        std::lock_guard<std::mutex> lock(task_mutex_);
         task_map_.emplace(call_id, task);
     }
 
     void route(const response_content& content)
     {
-        std::lock_guard<std::mutex> lock(task_mutex_);
-        auto iter = task_map_.find(content.call_id);
-        if (iter != task_map_.end())
+        task_t task;
+        if (task_map_.find(content.call_id, task))
         {
-            iter->second(content);
-            task_map_.erase(iter);
+            task(content);
+            task_map_.erase(content.call_id);
             std::cout << "map size: " << task_map_.size() << std::endl;
         }
     }
@@ -171,6 +171,7 @@ private:
     {
         if (try_connect())
         {
+            task_map_.clear();
             async_read_head();
         }
     }
@@ -179,9 +180,7 @@ private:
     char res_head_buf_[response_header_len];
     response_header res_head_;
     std::vector<char> content_;
-
-    std::unordered_map<std::string, task_t> task_map_;
-    std::mutex task_mutex_;
+    threadsafe_unordered_map<std::string, task_t> task_map_;
 };
 
 }
