@@ -6,7 +6,8 @@ using namespace czrpc::base;
 
 std::shared_ptr<google::protobuf::Message> request_person_info(const std::shared_ptr<google::protobuf::Message>& in_message)
 {
-    in_message->PrintDebugString();
+    auto message = std::dynamic_pointer_cast<request_person_info_message>(in_message);
+    message->PrintDebugString();
 #if 1
     auto out_message = std::make_shared<response_person_info_message>();
     out_message->set_name("Tom");

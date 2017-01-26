@@ -7,7 +7,8 @@
 
 namespace czrpc
 {
-
+namespace client
+{
 class async_rpc_client : public client_base
 {
 public:
@@ -24,36 +25,30 @@ public:
         sync_connect();
     }
 
-    using task_t = std::function<void(const std::string&)>; 
-    template<typename ReturnType>
+    using task_t = std::function<void(const response_content&)>; 
     class rpc_task
     {
     public:
         rpc_task(const client_flag& flag, const request_content& content, async_rpc_client* client) 
             : flag_(flag), content_(content), client_(client) {}
 
-        template<typename Function>
-        void result(const Function& func)
+        using result_callback_func = std::function<void(const message_ptr&)>;
+        void result(const result_callback_func& func)
         {
-            task_ = [&func, this](const std::string& body)
+            task_ = [&func, this](const response_content& content)
             {
-                (void)body;
-                /* return func(deserialize(std::string(&body[0], body.size()))); */ 
+                try
+                {
+                    func(serialize_util::singleton::get()->deserialize(content.message_name, content.body));
+                }
+                catch (std::exception& e)
+                {
+                    log_warn(e.what());
+                }
             };
             client_->async_call_one_way(flag_, content_);
             client_->add_bind_func(content_.call_id, task_);
         }
-
-    private:
-#if 0
-        ReturnType deserialize(const std::string& text) 
-        {
-            easypack::unpack up(text);
-            ReturnType ret;
-            up.unpack_args(ret);
-            return std::move(ret);
-        }
-#endif
 
     private:
         client_flag flag_;
@@ -62,21 +57,19 @@ public:
         async_rpc_client* client_;
     };
 
-#if 0
-    template<typename Protocol, typename... Args>
-    auto async_call(const Protocol& protocol, Args&&... args)
+    auto async_call(const std::string& func_name, const message_ptr& message)
     {
+        serialize_util::singleton::get()->check_message(message);
         sync_connect();
         request_content content;
         content.call_id = gen_uuid();
-        content.protocol = protocol.name();
-        content.body = serialize(std::forward<Args>(args)...);
+        content.protocol = func_name;
+        content.message_name = message->GetDescriptor()->full_name();
+        content.body = serialize_util::singleton::get()->serialize(message);
 
         client_flag flag{ serialize_mode::serialize, client_type_ };
-        using return_type = typename Protocol::return_type;
-        return rpc_task<return_type>{ flag, content, this };
+        return rpc_task{ flag, content, this };
     }
-#endif
 
 private:
     void async_read_head()
@@ -100,20 +93,28 @@ private:
             {
                 async_read_content();
             }
+            else
+            {
+                async_read_head();
+            }
         });
     }
 
     bool async_check_head()
     {
         memcpy(&res_head_, res_head_buf_, sizeof(res_head_buf_));
-        unsigned int len = res_head_.call_id_len + res_head_.body_len;
-        return (len > 0 && len < max_buffer_len) ? true : false;
+        if (res_head_.call_id_len + res_head_.message_name_len + res_head_.body_len > max_buffer_len)
+        {
+            log_warn("Content len is too big");
+            return false;
+        }
+        return true;
     }
 
     void async_read_content()
     {
         content_.clear();
-        content_.resize(res_head_.call_id_len + res_head_.body_len);
+        content_.resize(res_head_.call_id_len + res_head_.message_name_len + res_head_.body_len);
         boost::asio::async_read(get_socket(), boost::asio::buffer(content_), 
                                 [this](boost::system::error_code ec, std::size_t)
         {
@@ -131,11 +132,20 @@ private:
                 return;
             }
 
-            std::string call_id;
-            call_id.assign(&content_[0], res_head_.call_id_len);
-            std::string body;
-            body.assign(&content_[res_head_.call_id_len], res_head_.body_len);
-            route(call_id, body);
+            response_content content;
+            content.call_id.assign(&content_[0], res_head_.call_id_len);
+            content.message_name.assign(&content_[res_head_.call_id_len], res_head_.message_name_len);
+            content.body.assign(&content_[res_head_.call_id_len + res_head_.message_name_len], res_head_.body_len);
+            if (res_head_.error_code == rpc_error_code::ok)
+            {
+                route(content);
+            }
+            else
+            {
+                log_warn(get_rpc_error_string(res_head_.error_code));
+                std::lock_guard<std::mutex> lock(task_mutex_);
+                task_map_.erase(content.call_id);
+            }
         });
     }
 
@@ -145,13 +155,13 @@ private:
         task_map_.emplace(call_id, task);
     }
 
-    void route(const std::string& call_id, const std::string& body)
+    void route(const response_content& content)
     {
         std::lock_guard<std::mutex> lock(task_mutex_);
-        auto iter = task_map_.find(call_id);
+        auto iter = task_map_.find(content.call_id);
         if (iter != task_map_.end())
         {
-            iter->second(body);
+            iter->second(content);
             task_map_.erase(iter);
             std::cout << "map size: " << task_map_.size() << std::endl;
         }
@@ -174,5 +184,6 @@ private:
     std::mutex task_mutex_;
 };
 
+}
 }
 

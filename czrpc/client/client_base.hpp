@@ -250,7 +250,7 @@ private:
         memcpy(&res_head_, res_head_buf_, sizeof(res_head_buf_));
         if (res_head_.call_id_len + res_head_.message_name_len + res_head_.body_len > max_buffer_len)
         {
-            throw std::runtime_error("Body len is too big");
+            throw std::runtime_error("Content len is too big");
         }
         if (res_head_.error_code != rpc_error_code::ok)
         {

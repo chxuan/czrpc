@@ -149,16 +149,24 @@ private:
             if (check_head())
             {
                 read_content();
-                guard.dismiss();
             }
+            else
+            {
+                read_head();
+            }
+            guard.dismiss();
         });
     }
 
     bool check_head()
     {
         memcpy(&req_head_, req_head_buf_, sizeof(req_head_buf_));
-        unsigned int len = req_head_.call_id_len + req_head_.protocol_len + req_head_.message_name_len  + req_head_.body_len;
-        return (len > 0 && len < max_buffer_len) ? true : false;
+        if (req_head_.call_id_len + req_head_.protocol_len + req_head_.message_name_len  + req_head_.body_len > max_buffer_len)
+        {
+            log_warn("Content len is too big");
+            return false;
+        }
+        return true;
     }
 
     void read_content()
@@ -192,7 +200,7 @@ private:
             bool ok = route_(content, req_head_.flag, self);
             if (!ok)
             {
-                response_error(rpc_error_code::route_failed);
+                response_error(content.call_id, rpc_error_code::route_failed);
                 return;
             }
             guard.dismiss();
@@ -283,9 +291,10 @@ private:
         }
     }
 
-    void response_error(rpc_error_code error_code)
+    void response_error(const std::string& call_id, rpc_error_code error_code)
     {
         response_content content;
+        content.call_id = call_id;
         async_write(content, error_code);
     }
 
