@@ -56,11 +56,11 @@ public:
 
     virtual void stop()
     {
-        stop_timer_thread();
         if (client_type_ == client_type::rpc_client)
         {
-            stop_ios_thread();
+            stop_timer_thread();
         }
+        stop_ios_thread();
     }
 
     void call_one_way(const client_flag& flag, const request_content& content)
