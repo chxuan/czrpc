@@ -217,8 +217,12 @@ private:
     bool async_check_head()
     {
         memcpy(&push_head_, push_head_buf_, sizeof(push_head_buf_));
-        unsigned int len = push_head_.protocol_len + push_head_.message_name_len + push_head_.body_len;
-        return (len > 0 && len < max_buffer_len) ? true : false;
+        if (push_head_.protocol_len + push_head_.message_name_len + push_head_.body_len > max_buffer_len)
+        {
+            log_warn("Content len is too big");
+            return false;
+        }
+        return true;
     }
 
     void async_read_content()
