@@ -18,7 +18,7 @@ void test_func()
             message->set_name("Jack");
             message->set_age(20);
 
-            client.async_call("request_person_info", message).result([](const auto& in_message)
+            client.async_call("request_person_info", message).result([](const std::shared_ptr<google::protobuf::Message>& in_message)
             {
                 if (IS_SAME(in_message, response_person_info_message))
                 {
@@ -30,6 +30,11 @@ void test_func()
                     auto message = std::dynamic_pointer_cast<response_error>(in_message); 
                     message->PrintDebugString();
                 }
+            });
+
+            client.async_call_raw("echo", "Hello world").result([](const std::string& in_message)
+            {
+                std::cout << in_message << std::endl;
             });
         }
         catch (std::exception& e)

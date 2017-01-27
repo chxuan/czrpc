@@ -35,8 +35,7 @@ public:
         rpc_task(const client_flag& flag, const request_content& content, async_rpc_client* client) 
             : flag_(flag), content_(content), client_(client) {}
 
-        using result_callback_func = std::function<void(const message_ptr&)>;
-        void result(const result_callback_func& func)
+        void result(const std::function<void(const message_ptr&)>& func)
         {
             task_ = [&func, this](const response_content& content)
             {
@@ -53,11 +52,27 @@ public:
             client_->add_bind_func(content_.call_id, task_);
         }
 
+        void result(const std::function<void(const std::string&)>& func)
+        {
+            task_ = [&func, this](const response_content& content)
+            {
+                try
+                {
+                    func(content.body);
+                }
+                catch (std::exception& e)
+                {
+                    log_warn(e.what());
+                }
+            };
+            client_->async_call_one_way(flag_, content_);
+            client_->add_bind_func(content_.call_id, task_);
+        }
+
     private:
         client_flag flag_;
         request_content content_;
         task_t task_;
-        bool is_deserialize;
         async_rpc_client* client_;
     };
 
@@ -72,6 +87,18 @@ public:
         content.body = serialize_util::singleton::get()->serialize(message);
 
         client_flag flag{ serialize_mode::serialize, client_type_ };
+        return rpc_task{ flag, content, this };
+    }
+
+    auto async_call_raw(const std::string& func_name, const std::string& body)
+    {
+        sync_connect();
+        request_content content;
+        content.call_id = gen_uuid();
+        content.protocol = func_name;
+        content.body = body;
+
+        client_flag flag{ serialize_mode::non_serialize, client_type_ };
         return rpc_task{ flag, content, this };
     }
 
