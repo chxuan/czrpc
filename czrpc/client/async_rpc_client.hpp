@@ -57,6 +57,7 @@ public:
         client_flag flag_;
         request_content content_;
         task_t task_;
+        bool is_deserialize;
         async_rpc_client* client_;
     };
 
