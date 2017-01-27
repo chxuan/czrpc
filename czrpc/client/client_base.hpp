@@ -48,13 +48,19 @@ public:
     virtual void run()
     {
         start_ios_thread();
-        start_timer_thread();
+        if (client_type_ == client_type::rpc_client)
+        {
+            start_timer_thread();
+        }
     }
 
     virtual void stop()
     {
         stop_timer_thread();
-        stop_ios_thread();
+        if (client_type_ == client_type::rpc_client)
+        {
+            stop_ios_thread();
+        }
     }
 
     void call_one_way(const client_flag& flag, const request_content& content)

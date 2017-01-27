@@ -19,7 +19,7 @@ public:
     async_rpc_client& operator=(const async_rpc_client&) = delete;
     async_rpc_client() 
     {
-        client_type_ = client_type::rpc_client;
+        client_type_ = client_type::async_rpc_client;
     }
 
     virtual void run() override final

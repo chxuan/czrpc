@@ -26,6 +26,7 @@ enum class serialize_mode : unsigned int
 enum class client_type : unsigned int
 {
     rpc_client,
+    async_rpc_client,
     pub_client,
     sub_client
 };

@@ -153,7 +153,7 @@ public:
 
     bool route(const request_content& content, const client_flag& flag, const connection_ptr& conn)
     {
-        if (flag.type == client_type::rpc_client)
+        if (flag.type == client_type::rpc_client || flag.type == client_type::async_rpc_client)
         {
             if (flag.mode == serialize_mode::serialize)
             {
