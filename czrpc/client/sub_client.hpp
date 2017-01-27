@@ -207,6 +207,10 @@ private:
             {
                 async_read_content();
             }
+            else
+            {
+                async_read_head();
+            }
         });
     }
 
