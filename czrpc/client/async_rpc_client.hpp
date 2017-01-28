@@ -37,7 +37,7 @@ public:
 
         void result(const std::function<void(const message_ptr&)>& func)
         {
-            task_ = [&func, this](const response_content& content)
+            task_ = [func, this](const response_content& content)
             {
                 try
                 {
@@ -54,7 +54,7 @@ public:
 
         void result(const std::function<void(const std::string&)>& func)
         {
-            task_ = [&func, this](const response_content& content)
+            task_ = [func, this](const response_content& content)
             {
                 try
                 {
