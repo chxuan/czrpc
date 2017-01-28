@@ -57,11 +57,41 @@ int main()
         return 0;
     }
 
+#if 0
+    try
+    {
+        auto message = std::make_shared<request_person_info_message>();
+        message->set_name("Jack");
+        message->set_age(20);
+
+        client.async_call("request_person_info", message).result([](const std::shared_ptr<google::protobuf::Message>& in_message)
+        {
+            if (IS_SAME(in_message, response_person_info_message))
+            {
+                auto message = std::dynamic_pointer_cast<response_person_info_message>(in_message); 
+                message->PrintDebugString();
+            }
+            else if (IS_SAME(in_message, response_error))
+            {
+                auto message = std::dynamic_pointer_cast<response_error>(in_message); 
+                message->PrintDebugString();
+            }
+        });
+    }
+    catch (std::exception& e)
+    {
+        log_warn(e.what());
+        return 0;
+    }
+    std::cin.get();
+
+#else
     std::thread t(test_func);
     std::thread t2(test_func);
 
     t.join();
     t2.join();
+#endif
 
     return 0;
 }

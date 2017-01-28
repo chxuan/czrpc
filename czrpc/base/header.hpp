@@ -16,6 +16,7 @@ const std::string heartbeats_flag = "00";
 const int heartbeats_milli = 3000;
 const int connection_timeout_milli = 30000;
 const int connection_timeout_sec = 30;
+const int check_request_timeout_milli = 1000;
 
 enum class serialize_mode : unsigned int
 {

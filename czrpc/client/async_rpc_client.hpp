@@ -22,6 +22,11 @@ public:
         client_type_ = client_type::async_rpc_client;
     }
 
+    virtual ~async_rpc_client()
+    {
+        stop();
+    }
+
     virtual void run() override final
     {
         client_base::run();
@@ -202,6 +207,10 @@ private:
             task_map_.erase(content.call_id);
             std::cout << "map size: " << task_map_.size() << std::endl;
         }
+        else
+        {
+            log_info("Route failed, call id: {}, message name: {}", content.call_id, content.message_name);
+        }
     }
 
     void sync_connect()
@@ -215,13 +224,13 @@ private:
 
     void check_request_timeout()
     {
-        std::cout << "#################### time out: " << timeout_milli_ << std::endl;
         auto current_time = std::chrono::high_resolution_clock::now();
         task_map_.for_each_erase([&](const std::string&, const task_with_timepoint& task_time)
         {
             auto elapsed_time = current_time - task_time.time;
-            if (std::chrono::duration_cast<std::chrono::milliseconds>(elapsed_time).count() > static_cast<long>(timeout_milli_))
+            if (std::chrono::duration_cast<std::chrono::milliseconds>(elapsed_time).count() >= static_cast<long>(timeout_milli_))
             {
+                log_info("Request timeout, time: {}ms", std::chrono::duration_cast<std::chrono::milliseconds>(elapsed_time).count());
                 return true;
             }
             return false;
@@ -234,7 +243,7 @@ private:
         {
             timer_thread_ = std::make_unique<std::thread>([this]{ timer_ios_.run(); });
             timer_.bind([this]{ check_request_timeout(); });
-            timer_.start(timeout_milli_);
+            timer_.start(check_request_timeout_milli);
         }
     }
 
