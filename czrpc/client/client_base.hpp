@@ -336,6 +336,7 @@ private:
 protected:
     client_type client_type_;
     response_header res_head_;
+    std::size_t timeout_milli_ = 0;
 
 private:
     boost::asio::io_service ios_;
@@ -351,7 +352,6 @@ private:
     std::unique_ptr<std::thread> timer_thread_;
     atimer<> timer_;
 
-    std::size_t timeout_milli_ = 0;
     std::atomic<bool> is_connected_ ;
     std::mutex mutex_;
     std::mutex conn_mutex_;

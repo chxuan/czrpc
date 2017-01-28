@@ -17,7 +17,7 @@ class async_rpc_client : public client_base
 public:
     async_rpc_client(const async_rpc_client&) = delete;
     async_rpc_client& operator=(const async_rpc_client&) = delete;
-    async_rpc_client() 
+    async_rpc_client() : timer_work_(timer_ios_), timer_(timer_ios_) 
     {
         client_type_ = client_type::async_rpc_client;
     }
@@ -26,6 +26,13 @@ public:
     {
         client_base::run();
         sync_connect();
+        start_timer_thread();
+    }
+
+    virtual void stop() override final
+    {
+        stop_timer_thread();
+        client_base::stop();
     }
 
     using task_t = std::function<void(const response_content&)>; 
@@ -181,15 +188,17 @@ private:
 
     void add_bind_func(const std::string& call_id, const task_t& task)
     {
-        task_map_.emplace(call_id, task);
+        auto begin_time = std::chrono::high_resolution_clock::now();
+        task_with_timepoint task_time{ task, begin_time };
+        task_map_.emplace(call_id, task_time);
     }
 
     void route(const response_content& content)
     {
-        task_t task;
-        if (task_map_.find(content.call_id, task))
+        task_with_timepoint task_time;
+        if (task_map_.find(content.call_id, task_time))
         {
-            task(content);
+            task_time.task(content);
             task_map_.erase(content.call_id);
             std::cout << "map size: " << task_map_.size() << std::endl;
         }
@@ -204,11 +213,59 @@ private:
         }
     }
 
+    void check_request_timeout()
+    {
+        std::cout << "#################### time out: " << timeout_milli_ << std::endl;
+        auto current_time = std::chrono::high_resolution_clock::now();
+        task_map_.for_each_erase([&](const std::string&, const task_with_timepoint& task_time)
+        {
+            auto elapsed_time = current_time - task_time.time;
+            if (std::chrono::duration_cast<std::chrono::milliseconds>(elapsed_time).count() > static_cast<long>(timeout_milli_))
+            {
+                return true;
+            }
+            return false;
+        });
+    }
+
+    void start_timer_thread()
+    {
+        if (timeout_milli_ != 0)
+        {
+            timer_thread_ = std::make_unique<std::thread>([this]{ timer_ios_.run(); });
+            timer_.bind([this]{ check_request_timeout(); });
+            timer_.start(timeout_milli_);
+        }
+    }
+
+    void stop_timer_thread()
+    {
+        timer_ios_.stop();
+        if (timer_thread_ != nullptr)
+        {
+            if (timer_thread_->joinable())
+            {
+                timer_thread_->join();
+            }
+        }
+    }
+
 private:
     char res_head_buf_[response_header_len];
     response_header res_head_;
     std::vector<char> content_;
-    threadsafe_unordered_map<std::string, task_t> task_map_;
+
+    boost::asio::io_service timer_ios_;
+    boost::asio::io_service::work timer_work_;
+    std::unique_ptr<std::thread> timer_thread_;
+    atimer<> timer_;
+
+    struct task_with_timepoint
+    {
+        task_t task;
+        std::chrono::time_point<std::chrono::high_resolution_clock> time;
+    };
+    threadsafe_unordered_map<std::string, task_with_timepoint> task_map_;
 };
 
 }
