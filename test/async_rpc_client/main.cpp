@@ -18,8 +18,14 @@ void test_func()
             message->set_name("Jack");
             message->set_age(20);
 
-            client.async_call("request_person_info", message).result([](const std::shared_ptr<google::protobuf::Message>& in_message)
+            client.async_call("request_person_info", message).result([](const std::shared_ptr<google::protobuf::Message>& in_message, const czrpc::base::error_code& ec)
             {
+                if (ec)
+                {
+                    log_warn(ec.message());
+                    return;
+                }
+
                 if (IS_SAME(in_message, response_person_info_message))
                 {
                     auto message = std::dynamic_pointer_cast<response_person_info_message>(in_message); 
@@ -32,8 +38,13 @@ void test_func()
                 }
             });
 
-            client.async_call_raw("echo", "Hello world").result([](const std::string& in_message)
+            client.async_call_raw("echo", "Hello world").result([](const std::string& in_message, const czrpc::base::error_code& ec)
             {
+                if (ec)
+                {
+                    log_warn(ec.message());
+                    return;
+                }
                 std::cout << in_message << std::endl;
             });
         }
@@ -57,15 +68,21 @@ int main()
         return 0;
     }
 
-#if 0
+#if 1
     try
     {
         auto message = std::make_shared<request_person_info_message>();
         message->set_name("Jack");
         message->set_age(20);
 
-        client.async_call("request_person_info", message).result([](const std::shared_ptr<google::protobuf::Message>& in_message)
+        client.async_call("request_person_info", message).result([](const std::shared_ptr<google::protobuf::Message>& in_message, const czrpc::base::error_code& ec)
         {
+            if (ec)
+            {
+                log_warn(ec.message());
+                return;
+            }
+
             if (IS_SAME(in_message, response_person_info_message))
             {
                 auto message = std::dynamic_pointer_cast<response_person_info_message>(in_message); 

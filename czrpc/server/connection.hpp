@@ -52,7 +52,7 @@ public:
         return socket_;
     }
 
-    void write(const response_content& content, rpc_error_code error_code = rpc_error_code::ok)
+    void write(const response_content& content, rpc_error_code code = rpc_error_code::ok)
     {
         unsigned int call_id_len = static_cast<unsigned int>(content.call_id.size());
         unsigned int message_name_len = static_cast<unsigned int>(content.message_name.size());
@@ -63,7 +63,7 @@ public:
             throw std::runtime_error("Send data is too big");
         }
 
-        response_header header{ call_id_len, message_name_len, body_len, error_code };
+        response_header header{ call_id_len, message_name_len, body_len, code };
         std::string buffer = get_buffer(response_data{ header, content });
         write_impl(buffer);
     }
@@ -84,7 +84,7 @@ public:
         write_impl(buffer);
     }
 
-    void async_write(const response_content& content, rpc_error_code error_code = rpc_error_code::ok)
+    void async_write(const response_content& content, rpc_error_code code = rpc_error_code::ok)
     {
         unsigned int call_id_len = static_cast<unsigned int>(content.call_id.size());
         unsigned int message_name_len = static_cast<unsigned int>(content.message_name.size());
@@ -95,7 +95,7 @@ public:
             throw std::runtime_error("Send data is too big");
         }
 
-        response_header header{ call_id_len, message_name_len, body_len, error_code };
+        response_header header{ call_id_len, message_name_len, body_len, code };
         std::string buffer = get_buffer(response_data{ header, content });
         async_write_impl(buffer);
     }
@@ -291,11 +291,11 @@ private:
         }
     }
 
-    void response_error(const std::string& call_id, rpc_error_code error_code)
+    void response_error(const std::string& call_id, rpc_error_code code)
     {
         response_content content;
         content.call_id = call_id;
-        async_write(content, error_code);
+        async_write(content, code);
     }
 
 private:

@@ -47,13 +47,14 @@ public:
         rpc_task(const client_flag& flag, const request_content& content, async_rpc_client* client) 
             : flag_(flag), content_(content), client_(client) {}
 
-        void result(const std::function<void(const message_ptr&)>& func)
+        void result(const std::function<void(const message_ptr&, const czrpc::base::error_code&)>& func)
         {
             task_ = [func, this](const response_content& content)
             {
                 try
                 {
-                    func(serialize_util::singleton::get()->deserialize(content.message_name, content.body));
+                    func(serialize_util::singleton::get()->deserialize(content.message_name, content.body), 
+                         czrpc::base::error_code(rpc_error_code::ok));
                 }
                 catch (std::exception& e)
                 {
@@ -64,13 +65,13 @@ public:
             client_->add_bind_func(content_.call_id, task_);
         }
 
-        void result(const std::function<void(const std::string&)>& func)
+        void result(const std::function<void(const std::string&, const czrpc::base::error_code&)>& func)
         {
             task_ = [func, this](const response_content& content)
             {
                 try
                 {
-                    func(content.body);
+                    func(content.body, czrpc::base::error_code(rpc_error_code::ok));
                 }
                 catch (std::exception& e)
                 {
@@ -179,13 +180,13 @@ private:
             content.call_id.assign(&content_[0], res_head_.call_id_len);
             content.message_name.assign(&content_[res_head_.call_id_len], res_head_.message_name_len);
             content.body.assign(&content_[res_head_.call_id_len + res_head_.message_name_len], res_head_.body_len);
-            if (res_head_.error_code == rpc_error_code::ok)
+            if (res_head_.code == rpc_error_code::ok)
             {
                 route(content);
             }
             else
             {
-                log_warn(get_rpc_error_string(res_head_.error_code));
+                log_warn(get_rpc_error_string(res_head_.code));
                 task_map_.erase(content.call_id);
             }
         });
@@ -230,6 +231,7 @@ private:
             auto elapsed_time = current_time - task_time.time;
             if (std::chrono::duration_cast<std::chrono::milliseconds>(elapsed_time).count() >= static_cast<long>(timeout_milli_))
             {
+                /* task_time.task(nullptr, rpc_error_code::request_timeout); */
                 log_info("Request timeout, time: {}ms", std::chrono::duration_cast<std::chrono::milliseconds>(elapsed_time).count());
                 return true;
             }

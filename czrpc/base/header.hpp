@@ -64,7 +64,8 @@ struct request_data
 enum class rpc_error_code : int 
 {
     ok = 0,
-    route_failed = 1
+    route_failed = 1,
+    request_timeout = 2
 };
 
 struct response_header
@@ -72,7 +73,7 @@ struct response_header
     unsigned int call_id_len;
     unsigned int message_name_len;
     unsigned int body_len;
-    rpc_error_code error_code;
+    rpc_error_code code;
 };
 
 struct response_content
@@ -118,7 +119,8 @@ struct endpoint
 static std::unordered_map<int, std::string> rpc_error_map
 {
     {static_cast<int>(rpc_error_code::ok), "OK"},
-    {static_cast<int>(rpc_error_code::route_failed), "Route failed"}
+    {static_cast<int>(rpc_error_code::route_failed), "Route failed"},
+    {static_cast<int>(rpc_error_code::request_timeout), "Request timeout"}
 };
 
 static std::string get_rpc_error_string(rpc_error_code error_code)
@@ -130,6 +132,20 @@ static std::string get_rpc_error_string(rpc_error_code error_code)
     }
     return "";
 }
+
+class error_code
+{
+public:
+    error_code() = default;
+    error_code(rpc_error_code code) : code_(code) {}
+
+    int code() const { return static_cast<int>(code_); }
+    std::string message() const { return get_rpc_error_string(static_cast<rpc_error_code>(code_)); }
+    explicit operator bool() const { return code_ != rpc_error_code::ok ? true : false; }
+
+private:
+    rpc_error_code code_ = rpc_error_code::ok;
+};
 
 }
 }
