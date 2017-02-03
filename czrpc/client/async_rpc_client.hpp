@@ -40,7 +40,7 @@ public:
         client_base::stop();
     }
 
-    using task_t = std::function<void(const response_content&)>; 
+    using task_t = std::function<void(const response_content&, const czrpc::base::error_code&)>; 
     class rpc_task
     {
     public:
@@ -49,12 +49,18 @@ public:
 
         void result(const std::function<void(const message_ptr&, const czrpc::base::error_code&)>& func)
         {
-            task_ = [func, this](const response_content& content)
+            task_ = [func, this](const response_content& content, const czrpc::base::error_code& ec)
             {
                 try
                 {
-                    func(serialize_util::singleton::get()->deserialize(content.message_name, content.body), 
-                         czrpc::base::error_code(rpc_error_code::ok));
+                    if (ec)
+                    {
+                        func(nullptr, ec);
+                    }
+                    else
+                    {
+                        func(serialize_util::singleton::get()->deserialize(content.message_name, content.body), ec);
+                    }
                 }
                 catch (std::exception& e)
                 {
@@ -67,11 +73,18 @@ public:
 
         void result(const std::function<void(const std::string&, const czrpc::base::error_code&)>& func)
         {
-            task_ = [func, this](const response_content& content)
+            task_ = [func, this](const response_content& content, const czrpc::base::error_code& ec)
             {
                 try
                 {
-                    func(content.body, czrpc::base::error_code(rpc_error_code::ok));
+                    if (ec)
+                    {
+                        func("", ec);
+                    }
+                    else
+                    {
+                        func(content.body, ec);
+                    }
                 }
                 catch (std::exception& e)
                 {
@@ -180,15 +193,7 @@ private:
             content.call_id.assign(&content_[0], res_head_.call_id_len);
             content.message_name.assign(&content_[res_head_.call_id_len], res_head_.message_name_len);
             content.body.assign(&content_[res_head_.call_id_len + res_head_.message_name_len], res_head_.body_len);
-            if (res_head_.code == rpc_error_code::ok)
-            {
-                route(content);
-            }
-            else
-            {
-                log_warn(get_rpc_error_string(res_head_.code));
-                task_map_.erase(content.call_id);
-            }
+            route(content);
         });
     }
 
@@ -204,7 +209,7 @@ private:
         task_with_timepoint task_time;
         if (task_map_.find(content.call_id, task_time))
         {
-            task_time.task(content);
+            task_time.task(content, czrpc::base::error_code(res_head_.code));
             task_map_.erase(content.call_id);
             std::cout << "map size: " << task_map_.size() << std::endl;
         }
@@ -231,8 +236,8 @@ private:
             auto elapsed_time = current_time - task_time.time;
             if (std::chrono::duration_cast<std::chrono::milliseconds>(elapsed_time).count() >= static_cast<long>(timeout_milli_))
             {
-                /* task_time.task(nullptr, rpc_error_code::request_timeout); */
-                log_info("Request timeout, time: {}ms", std::chrono::duration_cast<std::chrono::milliseconds>(elapsed_time).count());
+                response_content content;
+                task_time.task(content, czrpc::base::error_code(rpc_error_code::request_timeout));
                 return true;
             }
             return false;
