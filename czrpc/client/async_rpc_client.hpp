@@ -67,8 +67,8 @@ public:
                     log_warn(e.what());
                 }
             };
-            client_->async_call_one_way(flag_, content_);
             client_->add_bind_func(content_.call_id, task_);
+            client_->async_call_one_way(flag_, content_);
         }
 
         void result(const std::function<void(const std::string&, const czrpc::base::error_code&)>& func)
@@ -91,8 +91,8 @@ public:
                     log_warn(e.what());
                 }
             };
-            client_->async_call_one_way(flag_, content_);
             client_->add_bind_func(content_.call_id, task_);
+            client_->async_call_one_way(flag_, content_);
         }
 
     private:
