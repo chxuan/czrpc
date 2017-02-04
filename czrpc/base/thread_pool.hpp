@@ -14,8 +14,7 @@ namespace czrpc
 {
 namespace base
 {
-static const std::size_t max_task_quque_size = 100000;
-static const std::size_t max_thread_size = 30;
+static const std::size_t max_thread_size = 100;
 
 class thread_pool
 {
@@ -48,31 +47,25 @@ public:
     template<typename Function, typename... Args>
     void add_task(const Function& func, Args... args)
     {
-        if (!is_stop_threadpool_)
-        {
-            task_t task = [&func, args...]{ return func(args...); };
-            add_task_impl(task);
-        }
+        check_thread_status();
+        task_t task = [&func, args...]{ return func(args...); };
+        add_task_impl(task);
     }
 
     template<typename Function, typename... Args>
     typename std::enable_if<std::is_class<Function>::value>::type add_task(Function& func, Args... args)
     {
-        if (!is_stop_threadpool_)
-        {
-            task_t task = [&func, args...]{ return func(args...); };
-            add_task_impl(task);
-        }
+        check_thread_status();
+        task_t task = [&func, args...]{ return func(args...); };
+        add_task_impl(task);
     }
 
     template<typename Function, typename Self, typename... Args>
     void add_task(const Function& func, Self* self, Args... args)
     {
-        if (!is_stop_threadpool_)
-        {
-            task_t task = [&func, &self, args...]{ return (*self.*func)(args...); };
-            add_task_impl(task);
-        }
+        check_thread_status();
+        task_t task = [&func, &self, args...]{ return (*self.*func)(args...); };
+        add_task_impl(task);
     }
 
     void stop()
@@ -83,16 +76,9 @@ public:
 private:
     void add_task_impl(const task_t& task)
     {
-        {
-            std::unique_lock<std::mutex> locker(task_queue_mutex_);
-            while (task_queue_.size() == max_task_quque_size && !is_stop_threadpool_)
-            {
-                task_put_.wait(locker);
-            }
-
-            task_queue_.emplace(std::move(task));
-        }
-
+        std::unique_lock<std::mutex> locker(task_queue_mutex_);
+        task_queue_.emplace(std::move(task));
+        locker.unlock();
         task_get_.notify_one();
     }
 
@@ -154,6 +140,14 @@ private:
         while (!task_queue_.empty())
         {
             task_queue_.pop();
+        }
+    }
+
+    void check_thread_status()
+    {
+        if (is_stop_threadpool_)
+        {
+            throw std::runtime_error("ThreadPool is stoped");
         }
     }
 
