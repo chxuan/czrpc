@@ -30,6 +30,11 @@ public:
         {
             message_ptr out_message;
             func_(serialize_util::singleton::get()->deserialize(content.message_name, content.body), out_message);
+            if (out_message == nullptr)
+            {
+                log_warn("Out message is nullptr");
+                return;
+            }
             std::string in_message_name = out_message->GetDescriptor()->full_name();
             std::string in_body = serialize_util::singleton::get()->serialize(out_message);
             if (!in_message_name.empty() && !in_body.empty())
