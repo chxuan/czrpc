@@ -24,6 +24,10 @@ public:
 
     message_ptr deserialize(const std::string& message_name, const std::string& body)
     {
+        if (message_name.empty())
+        {
+            throw std::runtime_error("Message name is empty");
+        }
         auto message = create_message(message_name);
         if (message == nullptr)
         {
@@ -39,7 +43,6 @@ public:
         }
         return message;
     }
-
 
     void check_message(const message_ptr& message)
     {
