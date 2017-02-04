@@ -80,6 +80,7 @@ private:
         {
             _console_logger = spdlog::stdout_logger_mt("console");
             _file_logger = spdlog::rotating_logger_mt("file", file_name, max_file_size, max_files);
+            _file_logger->flush_on(spdlog::level::level_enum::debug);
             _console_logger->set_level(spdlog::level::debug); 
             _file_logger->set_level(spdlog::level::debug); 
         }
