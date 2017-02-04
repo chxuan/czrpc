@@ -161,7 +161,7 @@ private:
     bool check_head()
     {
         memcpy(&req_head_, req_head_buf_, sizeof(req_head_buf_));
-        if (req_head_.call_id_len + req_head_.protocol_len + req_head_.message_name_len  + req_head_.body_len > max_buffer_len)
+        if (req_head_.call_id_len + req_head_.protocol_len + req_head_.message_name_len + req_head_.body_len > max_buffer_len)
         {
             log_warn("Content len is too big");
             return false;
