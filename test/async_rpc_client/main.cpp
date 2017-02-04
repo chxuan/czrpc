@@ -5,6 +5,7 @@
 using namespace czrpc::base;
 
 #define IS_SAME(message, other_message) (message->GetDescriptor()->full_name() == other_message::descriptor()->full_name())
+using message_ptr = std::shared_ptr<google::protobuf::Message>;
 
 czrpc::client::async_rpc_client client;
 
@@ -18,7 +19,7 @@ void test_func()
             message->set_name("Jack");
             message->set_age(20);
 
-            client.async_call("request_person_info", message).result([](const std::shared_ptr<google::protobuf::Message>& in_message, const czrpc::base::error_code& ec)
+            client.async_call("request_person_info", message).result([](const message_ptr& in_message, const czrpc::base::error_code& ec)
             {
                 if (ec)
                 {
@@ -75,7 +76,7 @@ int main()
         message->set_name("Jack");
         message->set_age(20);
 
-        client.async_call("request_person_info", message).result([](const std::shared_ptr<google::protobuf::Message>& in_message, const czrpc::base::error_code& ec)
+        client.async_call("request_person_info", message).result([](const message_ptr& in_message, const czrpc::base::error_code& ec)
         {
             if (ec)
             {
