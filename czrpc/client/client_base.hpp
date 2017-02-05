@@ -69,11 +69,11 @@ public:
         write(flag, content);
     }
 
-    std::vector<char> call_two_way(const client_flag& flag, const request_content& content)
+    response_content call_two_way(const client_flag& flag, const request_content& content)
     {
         std::lock_guard<std::mutex> lock(mutex_);
         write(flag, content);
-        return read();
+        return std::move(read());
     }
 
     void async_call_one_way(const client_flag& flag, const request_content& content)
@@ -231,13 +231,13 @@ private:
         });
     }
 
-    std::vector<char> read()
+    response_content read()
     {
         start_timer();
         auto guard = make_guard([this]{ stop_timer(); });
         read_head();
         check_head();
-        return read_content();
+        return std::move(read_content());
     }
 
     void read_head()
@@ -264,7 +264,7 @@ private:
         }
     }
 
-    std::vector<char> read_content()
+    response_content read_content()
     {
         content_.clear();
         content_.resize(res_head_.call_id_len + res_head_.message_name_len + res_head_.body_len);
@@ -275,7 +275,12 @@ private:
             is_connected_ = false;
             throw std::runtime_error(ec.message());
         }
-        return content_;
+
+        response_content content;
+        content.call_id.assign(&content_[0], res_head_.call_id_len);
+        content.message_name.assign(&content_[res_head_.call_id_len], res_head_.message_name_len);
+        content.body.assign(&content_[res_head_.call_id_len + res_head_.message_name_len], res_head_.body_len);
+        return std::move(content);
     }
 
     void start_timer()
@@ -335,7 +340,6 @@ private:
 
 protected:
     client_type client_type_;
-    response_header res_head_;
     std::size_t timeout_milli_ = 0;
 
 private:
@@ -345,6 +349,7 @@ private:
     boost::asio::ip::tcp::resolver::iterator endpoint_iter_;
     std::unique_ptr<std::thread> thread_;
     char res_head_buf_[response_header_len];
+    response_header res_head_;
     std::vector<char> content_;
 
     boost::asio::io_service timer_ios_;

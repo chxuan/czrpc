@@ -34,10 +34,8 @@ public:
         content.protocol = func_name;
         content.message_name = message->GetDescriptor()->full_name();
         content.body = serialize_util::singleton::get()->serialize(message);
-        auto ret = call_two_way(flag, content);
-        std::string message_name = std::string(&ret[0], res_head_.message_name_len);
-        std::string body = std::string(&ret[res_head_.message_name_len], res_head_.body_len);
-        return serialize_util::singleton::get()->deserialize(message_name, body);
+        auto res_content = call_two_way(flag, content);
+        return serialize_util::singleton::get()->deserialize(res_content.message_name, res_content.body);
     }
 
     std::string call_raw(const std::string& func_name, const std::string& body)
@@ -47,8 +45,8 @@ public:
         request_content content;
         content.protocol = func_name;
         content.body = body;
-        auto ret = call_two_way(flag, content);
-        return std::string(&ret[0], ret.size());
+        auto res_content = call_two_way(flag, content);
+        return std::move(res_content.body);
     }
 };
 
