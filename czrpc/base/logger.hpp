@@ -24,12 +24,12 @@ public:
 
     std::shared_ptr<spdlog::logger> get_console_logger()
     {
-        return _console_logger;
+        return console_logger_;
     }
 
     std::shared_ptr<spdlog::logger> get_file_logger()
     {
-        return _file_logger;
+        return file_logger_;
     }
 
 private:
@@ -78,11 +78,11 @@ private:
     {
         try
         {
-            _console_logger = spdlog::stdout_logger_mt("console");
-            _file_logger = spdlog::rotating_logger_mt("file", file_name, max_file_size, max_files);
-            _file_logger->flush_on(spdlog::level::level_enum::debug);
-            _console_logger->set_level(spdlog::level::debug); 
-            _file_logger->set_level(spdlog::level::debug); 
+            console_logger_ = spdlog::stdout_logger_mt("console");
+            file_logger_ = spdlog::rotating_logger_mt("file", file_name, max_file_size, max_files);
+            file_logger_->flush_on(spdlog::level::level_enum::debug);
+            console_logger_->set_level(spdlog::level::debug); 
+            file_logger_->set_level(spdlog::level::debug); 
         }
         catch (std::exception&)
         {
@@ -93,8 +93,8 @@ private:
     }
 
 private:
-    std::shared_ptr<spdlog::logger> _console_logger;
-    std::shared_ptr<spdlog::logger> _file_logger;
+    std::shared_ptr<spdlog::logger> console_logger_;
+    std::shared_ptr<spdlog::logger> file_logger_;
 };
 
 class logger
@@ -115,7 +115,7 @@ public:
     template<typename... Args>
     void log(const char* fmt, Args&&... args)
     {
-        const std::string& content = make_content(fmt);
+        std::string content = make_content(fmt);
         logger_impl::singleton::get()->get_console_logger()->log(level_, content.c_str(), std::forward<Args>(args)...);
         logger_impl::singleton::get()->get_file_logger()->log(level_, content.c_str(), std::forward<Args>(args)...);
     }
@@ -129,7 +129,7 @@ private:
         int pos = file_path_.find_last_of("/");
 #endif
         std::string content = file_path_.substr(pos + 1) + " " + file_name_ + "(" + std::to_string(line_) + ") " + fmt;
-        return content;
+        return std::move(content);
     }
 
 private:
