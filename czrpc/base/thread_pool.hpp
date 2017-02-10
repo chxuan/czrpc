@@ -29,17 +29,17 @@ public:
     {
         for (size_t i = 0; i < num; ++i)
         {
-            std::thread work_thread(std::bind(&thread_pool::run_task, this));
-            thread_vec_.emplace_back(work_thread);
+            auto t = std::make_shared<std::thread>(std::bind(&thread_pool::run_task, this));
+            thread_vec_.emplace_back(t);
         }
     }
 
     template<typename Function, typename... Args>
-    auto enqueue(Function&& func, Args&&... args) -> std::future<typename std::result_of<Function(Args...)>::type>
+    auto add_task(Function&& func, Args&&... args) -> std::future<typename std::result_of<Function(Args...)>::type>
     {
         if (is_stop_threadpool_)
         {
-            throw std::runtime_error("enqueue on stopped thread pool");
+            throw std::runtime_error("Add task on stopped thread pool");
         }
 
         using return_type = typename std::result_of<Function(Args...)>::type;
@@ -87,15 +87,15 @@ private:
         cond_.notify_all();
         for(auto& iter: thread_vec_)
         {
-            if (iter.joinable())
+            if (iter->joinable())
             {
-                iter.join();
+                iter->join();
             }
         }
     }
 
 private:
-    std::vector<std::thread> thread_vec_;
+    std::vector<std::shared_ptr<std::thread>> thread_vec_;
     std::queue<std::function<void()>> task_queue_;
 
     std::mutex mutex_;

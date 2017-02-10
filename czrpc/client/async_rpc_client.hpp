@@ -4,6 +4,7 @@
 #include <mutex>
 #include "base/common_util.hpp"
 #include "base/table/threadsafe_unordered_map.hpp"
+#include "base/thread_pool.hpp"
 #include "client_base.hpp"
 
 using namespace czrpc::base::table;
@@ -29,6 +30,7 @@ public:
 
     virtual void run() override final
     {
+        threadpool_.init_thread_num(1);
         client_base::run();
         sync_connect();
         start_timer_thread();
@@ -38,6 +40,7 @@ public:
     {
         stop_timer_thread();
         client_base::stop();
+        threadpool_.stop();
     }
 
     using task_t = std::function<void(const response_content&, const czrpc::base::error_code&)>; 
@@ -209,8 +212,8 @@ private:
         task_with_timepoint task_time;
         if (task_map_.find(content.call_id, task_time))
         {
-            task_time.task(content, czrpc::base::error_code(res_head_.code));
             task_map_.erase(content.call_id);
+            threadpool_.add_task(task_time.task, content, czrpc::base::error_code(res_head_.code));
             std::cout << "map size: " << task_map_.size() << std::endl;
         }
         else
@@ -237,7 +240,7 @@ private:
             if (std::chrono::duration_cast<std::chrono::milliseconds>(elapsed_time).count() >= static_cast<long>(timeout_milli_))
             {
                 response_content content;
-                task_time.task(content, czrpc::base::error_code(rpc_error_code::request_timeout));
+                threadpool_.add_task(task_time.task, content, czrpc::base::error_code(rpc_error_code::request_timeout));
                 return true;
             }
             return false;
@@ -282,6 +285,7 @@ private:
         std::chrono::time_point<std::chrono::high_resolution_clock> time;
     };
     threadsafe_unordered_map<std::string, task_with_timepoint> task_map_;
+    thread_pool threadpool_;
 };
 
 }
