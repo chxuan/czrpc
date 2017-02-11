@@ -41,6 +41,7 @@ int main()
     try
     {
         server.set_client_connect_notify(std::bind(&client_connect_notify, std::placeholders::_1));
+        server.set_client_disconnect_nofity(std::bind(&client_disconnect_notify, std::placeholders::_1));
         server.bind("request_person_info", &request_person_info);
         server.bind_raw("echo", &echo);
 

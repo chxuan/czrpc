@@ -42,6 +42,7 @@ public:
 
     ~connection()
     {
+        client_disconnect_notify_callback();
         disconnect();
     }
 
@@ -328,7 +329,11 @@ private:
     {
         if (client_connect_notify_ != nullptr)
         {
-            client_connect_notify_(get_session_id());
+            std::string session_id = get_session_id();
+            if (!session_id.empty())
+            {
+                client_connect_notify_(session_id);
+            }
         }
     }
 
@@ -336,7 +341,11 @@ private:
     {
         if (client_disconnect_notify_ != nullptr)
         {
-            client_disconnect_notify_(get_session_id());
+            std::string session_id = get_session_id();
+            if (!session_id.empty())
+            {
+                client_disconnect_notify_(session_id);
+            }
         }
     }
 
