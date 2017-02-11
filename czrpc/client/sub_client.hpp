@@ -261,7 +261,6 @@ private:
 
     void heartbeats_timer()
     {
-        std::cout << "###################################### heartbeats_timer" << std::endl;
         try
         {
             sync_connect();

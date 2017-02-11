@@ -10,6 +10,7 @@
 #include "base/logger.hpp"
 #include "base/singleton.hpp"
 #include "base/serialize_util.hpp"
+#include "base/thread_pool.hpp"
 
 using namespace czrpc::base;
 
@@ -67,7 +68,11 @@ class sub_router
 {
     DEFINE_SINGLETON(sub_router);
 public:
-    sub_router() = default;
+    sub_router()
+    {
+        static const std::size_t thread_num = 1;
+        threadpool_.init_thread_num(thread_num);
+    }
 
     template<typename Function>
     void bind(const std::string& protocol, const Function& func)
@@ -137,7 +142,8 @@ public:
             {
                 return false;
             }
-            iter->second(content);
+            /* iter->second(content); */
+            threadpool_.add_task(iter->second, content);
         }
         else if (mode == serialize_mode::non_serialize)
         {
@@ -147,7 +153,8 @@ public:
             {
                 return false;
             }
-            iter->second(content);
+            /* iter->second(content); */
+            threadpool_.add_task(iter->second, content);
         }
         return true;
     }
@@ -297,6 +304,7 @@ private:
     std::unordered_map<std::string, sub_invoker_function_raw> invoker_raw_map_;
     std::mutex map_mutex_;
     std::mutex raw_map_mutex_;
+    thread_pool threadpool_;
 };
 
 }
