@@ -25,11 +25,22 @@ std::string echo(const std::string& str)
     return str;
 }
 
+void client_connect_notify(const std::string& session_id)
+{
+    std::cout << "connect session id: " << session_id << std::endl;
+}
+
+void client_disconnect_notify(const std::string& session_id)
+{
+    std::cout << "disconnect session id: " << session_id << std::endl;
+}
+
 int main()
 {
     czrpc::server::server server;
     try
     {
+        server.set_client_connect_notify(std::bind(&client_connect_notify, std::placeholders::_1));
         server.bind("request_person_info", &request_person_info);
         server.bind_raw("echo", &echo);
 

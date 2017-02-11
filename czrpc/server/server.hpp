@@ -158,7 +158,6 @@ private:
 
     void handle_error(const connection_ptr& conn)
     {
-        std::cout << "handle error#################" << std::endl;
         topic_manager::singleton::get()->remove_all_topic(conn);
         connection_manager::singleton::get()->remove_connection(conn);
     }
