@@ -30,7 +30,8 @@ public:
 
     virtual void run() override final
     {
-        threadpool_.init_thread_num(1);
+        static const std::size_t thread_num = 1;
+        threadpool_.init_thread_num(thread_num);
         client_base::run();
         sync_connect();
         start_timer_thread();
