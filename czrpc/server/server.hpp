@@ -68,6 +68,16 @@ public:
         io_service_pool::singleton::get()->stop();
     }
 
+    void set_client_connect_notify(const std::function<void(const std::string&)>& func)
+    {
+        client_connect_notify_ = func;
+    }
+
+    void set_client_disconnect_nofity(const std::function<void(const std::string&)>& func)
+    {
+        client_disconnect_notify_ = func;
+    }
+
     template<typename Function>
     void bind(const std::string& protocol, const Function& func)
     {
@@ -119,7 +129,8 @@ private:
         auto handle_error_func = std::bind(&server::handle_error, this, std::placeholders::_1);
         for (auto& ep : endpoint_vec_)
         {
-            auto endpoint = std::make_shared<tcp_endpoint>(route_func, handle_error_func);
+            auto endpoint = std::make_shared<tcp_endpoint>(route_func, handle_error_func, 
+                                                           client_connect_notify_, client_disconnect_notify_);
             endpoint->listen(ep.ip, ep.port);
             tcp_endpoint_vec_.emplace_back(endpoint);
         }
@@ -147,6 +158,7 @@ private:
 
     void handle_error(const connection_ptr& conn)
     {
+        std::cout << "handle error#################" << std::endl;
         topic_manager::singleton::get()->remove_all_topic(conn);
         connection_manager::singleton::get()->remove_connection(conn);
     }
@@ -232,6 +244,9 @@ private:
     boost::asio::io_service::work timer_work_;
     std::unique_ptr<std::thread> timer_thread_;
     atimer<> timer_;
+
+    std::function<void(const std::string&)> client_connect_notify_ = nullptr;
+    std::function<void(const std::string&)> client_disconnect_notify_ = nullptr;
 };
 
 }

@@ -32,9 +32,13 @@ public:
     connection& operator=(const connection&) = delete;
     connection(boost::asio::io_service& ios, 
                const router_callback& route_func, 
-               const handle_error_callback& handle_error_func)
-        : ios_(ios), socket_(ios), route_(route_func), 
-        handle_error_(handle_error_func) {} 
+               const handle_error_callback& handle_error_func,
+               const std::function<void(const std::string&)>& client_connect,
+               const std::function<void(const std::string&)>& client_disconnect)
+        : ios_(ios), socket_(ios), 
+        route_(route_func), handle_error_(handle_error_func),
+        client_connect_notify_(client_connect),
+        client_disconnect_notify_(client_disconnect){} 
 
     ~connection()
     {
@@ -43,6 +47,7 @@ public:
 
     void start()
     {
+        client_connect_notify_callback();
         set_no_delay();
         read_head();
     }
@@ -298,6 +303,43 @@ private:
         async_write(content, code);
     }
 
+    std::string get_session_id()
+    {
+        if (session_id_.empty())
+        {
+            if (socket_.is_open())
+            {
+                boost::system::error_code ec, ec2;
+                auto local_endpoint = socket_.local_endpoint();
+                auto remote_endpoint = socket_.remote_endpoint();
+                if (!ec && !ec2)
+                {
+                    session_id_ = local_endpoint.address().to_string() + ":"
+                                + std::to_string(local_endpoint.port()) + "#"
+                                + remote_endpoint.address().to_string() + ":"
+                                + std::to_string(remote_endpoint.port());
+                }
+            }
+        }
+        return session_id_;
+    }
+
+    void client_connect_notify_callback()
+    {
+        if (client_connect_notify_ != nullptr)
+        {
+            client_connect_notify_(get_session_id());
+        }
+    }
+
+    void client_disconnect_notify_callback()
+    {
+        if (client_disconnect_notify_ != nullptr)
+        {
+            client_disconnect_notify_(get_session_id());
+        }
+    }
+
 private:
     boost::asio::io_service& ios_;
     boost::asio::ip::tcp::socket socket_;
@@ -307,6 +349,10 @@ private:
     router_callback route_;
     handle_error_callback handle_error_;
     threadsafe_list<std::string> send_queue_;
+    std::string session_id_;
+
+    std::function<void(const std::string&)> client_connect_notify_ = nullptr;
+    std::function<void(const std::string&)> client_disconnect_notify_ = nullptr;
 };
 
 }
