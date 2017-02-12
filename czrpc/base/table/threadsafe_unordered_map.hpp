@@ -112,6 +112,12 @@ public:
         return false;
     }
 
+    std::unordered_map<Key, Value> clone() 
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        return map_;
+    }
+
     void clear()
     {
         std::lock_guard<std::mutex> lock(mutex_);

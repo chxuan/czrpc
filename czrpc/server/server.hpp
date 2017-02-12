@@ -4,11 +4,13 @@
 #include <vector>
 #include <unordered_map>
 #include <mutex>
+#include "base/table/threadsafe_unordered_map.hpp"
 #include "io_service_pool.hpp"
 #include "router.hpp"
 #include "tcp_endpoint.hpp"
 #include "topic_manager.hpp"
-#include "connection_manager.hpp"
+
+using namespace czrpc::base::table;
 
 namespace czrpc
 {
@@ -159,7 +161,7 @@ private:
     void handle_error(const connection_ptr& conn)
     {
         topic_manager::singleton::get()->remove_all_topic(conn);
-        connection_manager::singleton::get()->remove_connection(conn);
+        conn_map_.erase(conn);
     }
 
     void publisher_coming(serialize_mode mode, const push_content& content)
@@ -185,11 +187,11 @@ private:
     {
         if (topic_name == heartbeats_flag && body == heartbeats_flag)
         {
-            connection_manager::singleton::get()->update_time(conn);
+            conn_map_.emplace_or_update(conn, time(nullptr));
         }
         else if (topic_name != heartbeats_flag && body == subscribe_topic_flag)
         {
-            connection_manager::singleton::get()->add_connection(conn);
+            conn_map_.emplace_or_update(conn, time(nullptr));
             topic_manager::singleton::get()->add_topic(topic_name, conn);
         }
         else if (topic_name != heartbeats_flag && body == cancel_subscribe_topic_flag)
@@ -219,7 +221,7 @@ private:
 
     void check_connection_timeout()
     {
-        auto conn_map = connection_manager::singleton::get()->get_connection_map();
+        auto conn_map = conn_map_.clone();
         time_t current_time = time(nullptr);
         for (auto& iter : conn_map)
         {
@@ -236,6 +238,7 @@ private:
 
     std::vector<endpoint> endpoint_vec_;
     std::vector<std::shared_ptr<tcp_endpoint>> tcp_endpoint_vec_;
+    threadsafe_unordered_map<connection_ptr, time_t> conn_map_;
 
     boost::asio::io_service timer_ios_;
     boost::asio::io_service::work timer_work_;
