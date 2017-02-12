@@ -23,7 +23,6 @@ public:
     void remove_connection(const connection_ptr& conn)
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        std::cout << "remove_connection" << std::endl;
         conn_map_.erase(conn);
     }
 
