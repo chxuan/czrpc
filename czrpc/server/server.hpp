@@ -185,7 +185,6 @@ private:
     {
         if (topic_name == heartbeats_flag && body == heartbeats_flag)
         {
-            std::cout << "heatbeatsing.........." << std::endl;
             connection_manager::singleton::get()->update_time(conn);
         }
         else if (topic_name != heartbeats_flag && body == subscribe_topic_flag)
@@ -220,8 +219,7 @@ private:
 
     void check_connection_timeout()
     {
-        std::cout << "check_connection_timeout" << std::endl;
-        std::unordered_map<connection_ptr, time_t> conn_map = connection_manager::singleton::get()->get_connection_map();
+        auto conn_map = connection_manager::singleton::get()->get_connection_map();
         time_t current_time = time(nullptr);
         for (auto& iter : conn_map)
         {

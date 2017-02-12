@@ -33,7 +33,6 @@ public:
         auto iter = conn_map_.find(conn);
         if (iter != conn_map_.end())
         {
-            std::cout << "current time: " << time(nullptr) << std::endl;
             iter->second = time(nullptr);
         }
     }

@@ -69,7 +69,6 @@ public:
         {
             if (begin->second.lock() == conn)
             {
-                std::cout << "remove topic: " << begin->first << std::endl;
                 begin = topic_map_.erase(begin);
             }
             else

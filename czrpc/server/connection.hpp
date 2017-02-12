@@ -256,7 +256,6 @@ private:
         auto self(this->shared_from_this());
         ios_.post([this, self, buffer]
         {
-            std::cout << "size: " << send_queue_.size() << std::endl;
             bool is_empty = send_queue_.empty();
             send_queue_.emplace_back(buffer);
             if (is_empty)
