@@ -69,7 +69,7 @@ int main()
         return 0;
     }
 
-#if 1
+#if 0
     try
     {
         auto message = std::make_shared<request_person_info_message>();

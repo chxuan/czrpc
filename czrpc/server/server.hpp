@@ -49,15 +49,22 @@ public:
         return *this;
     }
 
-    server& multithreaded(std::size_t num)
+    server& ios_threads(std::size_t num)
     {
-        thread_num_ = num;
+        ios_thread_num_ = num;
+        return *this;
+    }
+
+    server& work_threads(std::size_t num)
+    {
+        work_thread_num_ = num;
         return *this;
     }
 
     void run()
     {
-        router::singleton::get()->multithreaded(thread_num_);
+        io_service_pool::singleton::get()->multithreaded(ios_thread_num_);
+        router::singleton::get()->multithreaded(work_thread_num_);
         listen();
         accept();
         io_service_pool::singleton::get()->run();
@@ -234,7 +241,8 @@ private:
 
 private:
     std::size_t timeout_milli_ = 0;
-    std::size_t thread_num_ = 1;
+    std::size_t ios_thread_num_ = 1;
+    std::size_t work_thread_num_ = 1;
 
     std::vector<endpoint> endpoint_vec_;
     std::vector<std::shared_ptr<tcp_endpoint>> tcp_endpoint_vec_;
