@@ -132,6 +132,27 @@ public:
         }
     }
 
+    std::string get_session_id()
+    {
+        if (session_id_.empty())
+        {
+            if (socket_.is_open())
+            {
+                boost::system::error_code ec, ec2;
+                auto local_endpoint = socket_.local_endpoint();
+                auto remote_endpoint = socket_.remote_endpoint();
+                if (!ec && !ec2)
+                {
+                    session_id_ = local_endpoint.address().to_string() + ":"
+                                + std::to_string(local_endpoint.port()) + "#"
+                                + remote_endpoint.address().to_string() + ":"
+                                + std::to_string(remote_endpoint.port());
+                }
+            }
+        }
+        return session_id_;
+    }
+
 private:
     void read_head()
     {
@@ -299,27 +320,6 @@ private:
         response_content content;
         content.call_id = call_id;
         async_write(content, code);
-    }
-
-    std::string get_session_id()
-    {
-        if (session_id_.empty())
-        {
-            if (socket_.is_open())
-            {
-                boost::system::error_code ec, ec2;
-                auto local_endpoint = socket_.local_endpoint();
-                auto remote_endpoint = socket_.remote_endpoint();
-                if (!ec && !ec2)
-                {
-                    session_id_ = local_endpoint.address().to_string() + ":"
-                                + std::to_string(local_endpoint.port()) + "#"
-                                + remote_endpoint.address().to_string() + ":"
-                                + std::to_string(remote_endpoint.port());
-                }
-            }
-        }
-        return session_id_;
     }
 
     void client_connect_notify_callback()
