@@ -77,12 +77,14 @@ public:
     template<typename Function>
     void bind(const std::string& protocol, const Function& func)
     {
+        check_bind(protocol);
         bind_non_member_func(protocol, func);
     }
 
     template<typename Function, typename Self>
     void bind(const std::string& protocol, const Function& func, Self* self)
     {
+        check_bind(protocol);
         bind_member_func(protocol, func, self); 
     }
 
@@ -106,12 +108,14 @@ public:
     template<typename Function>
     void bind_raw(const std::string& protocol, const Function& func)
     {
+        check_bind_raw(protocol);
         bind_non_member_func_raw(protocol, func);
     }
 
     template<typename Function, typename Self>
     void bind_raw(const std::string& protocol, const Function& func, Self* self)
     {
+        check_bind_raw(protocol);
         bind_member_func_raw(protocol, func, self); 
     }
 
@@ -295,6 +299,22 @@ private:
     {
         std::lock_guard<std::mutex> lock(raw_map_mutex_);
         invoker_raw_map_.emplace(protocol, sub_invoker_function_raw{ std::bind(&invoker_raw<Function>::template apply_member<Self>, func, self, std::placeholders::_1) });
+    }
+
+    void check_bind(const std::string& protocol)
+    {
+        if (is_bind(protocol))
+        {
+            throw std::runtime_error(protocol + " was binded");
+        }
+    }
+
+    void check_bind_raw(const std::string& protocol)
+    {
+        if (is_bind_raw(protocol))
+        {
+            throw std::runtime_error(protocol + " was binded");
+        }
     }
 
 private:
