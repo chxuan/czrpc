@@ -194,11 +194,11 @@ private:
     {
         if (topic_name == heartbeats_flag && body == heartbeats_flag)
         {
-            conn_map_.emplace_or_update(conn, time(nullptr));
+            conn_map_.replace(conn, time(nullptr));
         }
         else if (topic_name != heartbeats_flag && body == subscribe_topic_flag)
         {
-            conn_map_.emplace_or_update(conn, time(nullptr));
+            conn_map_.replace(conn, time(nullptr));
             topic_manager::singleton::get()->add_topic(topic_name, conn);
         }
         else if (topic_name != heartbeats_flag && body == cancel_subscribe_topic_flag)
