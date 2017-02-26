@@ -175,24 +175,10 @@ public:
 
 private:
     template<typename Function>
-    static typename std::enable_if<std::is_void<typename std::result_of<Function(const message_ptr&)>::type>::value>::type
-    call(const Function& func, const message_ptr& in_message, message_ptr&)
-    {
-        func(in_message);
-    }
-
-    template<typename Function>
     static typename std::enable_if<!std::is_void<typename std::result_of<Function(const message_ptr&)>::type>::value>::type
     call(const Function& func, const message_ptr& in_message, message_ptr& out_message)
     {
         out_message = func(in_message);
-    }
-
-    template<typename Function, typename Self>
-    static typename std::enable_if<std::is_void<typename std::result_of<Function(Self, const message_ptr&)>::type>::value>::type
-    call_member(const Function& func, Self* self, const message_ptr& in_message, message_ptr&)
-    {
-        (*self.*func)(in_message);
     }
 
     template<typename Function, typename Self>
@@ -203,24 +189,10 @@ private:
     }
 
     template<typename Function>
-    static typename std::enable_if<std::is_void<typename std::result_of<Function(const std::string&)>::type>::value>::type
-    call_raw(const Function& func, const std::string& body, std::string&)
-    {
-        func(body);
-    }
-
-    template<typename Function>
     static typename std::enable_if<!std::is_void<typename std::result_of<Function(const std::string&)>::type>::value>::type
     call_raw(const Function& func, const std::string& body, std::string& out_body)
     {
         out_body = func(body);
-    }
-
-    template<typename Function, typename Self>
-    static typename std::enable_if<std::is_void<typename std::result_of<Function(Self, const std::string&)>::type>::value>::type
-    call_member_raw(const Function& func, Self* self, const std::string& body, std::string&)
-    {
-        (*self.*func)(body);
     }
 
     template<typename Function, typename Self>
