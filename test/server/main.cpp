@@ -4,8 +4,9 @@
 
 using namespace czrpc::base;
 
-std::shared_ptr<google::protobuf::Message> request_person_info(const std::shared_ptr<google::protobuf::Message>& in_message)
+std::shared_ptr<google::protobuf::Message> request_person_info(const std::shared_ptr<google::protobuf::Message>& in_message, const std::string& session_id)
 {
+    std::cout << "session id: " << session_id << std::endl;
     auto message = std::dynamic_pointer_cast<request_person_info_message>(in_message);
     message->PrintDebugString();
 #if 1
@@ -20,10 +21,14 @@ std::shared_ptr<google::protobuf::Message> request_person_info(const std::shared
     return out_message;
 }
 
-std::string echo(const std::string& str)
+class test
 {
-    return str;
-}
+public:
+    std::string echo(const std::string& str)
+    {
+        return str;
+    }
+};
 
 void client_connect_notify(const std::string& session_id)
 {
@@ -38,12 +43,13 @@ void client_disconnect_notify(const std::string& session_id)
 int main()
 {
     czrpc::server::server server;
+    test t;
     try
     {
         server.set_client_connect_notify(std::bind(&client_connect_notify, std::placeholders::_1));
         server.set_client_disconnect_nofity(std::bind(&client_disconnect_notify, std::placeholders::_1));
         server.bind("request_person_info", &request_person_info);
-        server.bind_raw("echo", &echo);
+        server.bind_raw("echo", &test::echo, &t);
 
         std::vector<czrpc::base::endpoint> ep;
         ep.emplace_back(czrpc::base::endpoint{ "127.0.0.1", 50051 });

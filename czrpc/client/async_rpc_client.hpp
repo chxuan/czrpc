@@ -215,7 +215,6 @@ private:
         {
             task_map_.erase(content.call_id);
             threadpool_.add_task(task_time.task, content, czrpc::base::error_code(res_head_.code));
-            std::cout << "map size: " << task_map_.size() << std::endl;
         }
         else
         {

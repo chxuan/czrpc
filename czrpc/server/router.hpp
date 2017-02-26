@@ -17,10 +17,13 @@ namespace czrpc
 {
 namespace server
 {
+template<std::size_t N, std::size_t M>
+struct is_number_equal : std::integral_constant<bool, N == M> {};
+
 class invoker_function
 {
 public:
-    using function_t = std::function<void(const message_ptr&, message_ptr&)>;
+    using function_t = std::function<void(const message_ptr&, const std::string&, message_ptr&)>;
     invoker_function() = default;
     invoker_function(const function_t& func) : func_(func) {}
 
@@ -29,7 +32,7 @@ public:
         try
         {
             message_ptr out_message;
-            func_(serialize_util::singleton::get()->deserialize(content.message_name, content.body), out_message);
+            func_(serialize_util::singleton::get()->deserialize(content.message_name, content.body), conn->get_session_id(), out_message);
             if (out_message == nullptr)
             {
                 log_warn("Out message is nullptr");
@@ -56,7 +59,7 @@ private:
 class invoker_function_raw
 {
 public:
-    using function_t = std::function<void(const std::string&, std::string&)>;
+    using function_t = std::function<void(const std::string&, const std::string&, std::string&)>;
     invoker_function_raw() = default;
     invoker_function_raw(const function_t& func) : func_(func) {}
 
@@ -65,7 +68,7 @@ public:
         try
         {
             std::string out_body;
-            func_(content.body, out_body);
+            func_(content.body, conn->get_session_id(), out_body);
             if (!out_body.empty())
             {
                 conn->async_write(response_content{ content.call_id, "", out_body });
@@ -101,12 +104,14 @@ public:
     template<typename Function>
     void bind(const std::string& protocol, const Function& func)
     {
+        check_bind(protocol);
         bind_non_member_func(protocol, func);
     }
 
     template<typename Function, typename Self>
     void bind(const std::string& protocol, const Function& func, Self* self)
     {
+        check_bind(protocol);
         bind_member_func(protocol, func, self); 
     }
 
@@ -130,12 +135,14 @@ public:
     template<typename Function>
     void bind_raw(const std::string& protocol, const Function& func)
     {
+        check_bind_raw(protocol);
         bind_non_member_func_raw(protocol, func);
     }
 
     template<typename Function, typename Self>
     void bind_raw(const std::string& protocol, const Function& func, Self* self)
     {
+        check_bind_raw(protocol);
         bind_member_func_raw(protocol, func, self); 
     }
 
@@ -175,31 +182,59 @@ public:
 
 private:
     template<typename Function>
-    static typename std::enable_if<!std::is_void<typename std::result_of<Function(const message_ptr&)>::type>::value>::type
-    call(const Function& func, const message_ptr& in_message, message_ptr& out_message)
+    static typename std::enable_if<is_number_equal<1, function_traits<Function>::arity>::value>::type 
+    call(const Function& func, const message_ptr& in_message, const std::string&, message_ptr& out_message)
     {
         out_message = func(in_message);
     }
 
+    template<typename Function>
+    static typename std::enable_if<is_number_equal<2, function_traits<Function>::arity>::value>::type 
+    call(const Function& func, const message_ptr& in_message, const std::string& session_id, message_ptr& out_message)
+    {
+        out_message = func(in_message, session_id);
+    }
+
     template<typename Function, typename Self>
-    static typename std::enable_if<!std::is_void<typename std::result_of<Function(Self, const message_ptr&)>::type>::value>::type
-    call_member(const Function& func, Self* self, const message_ptr& in_message, message_ptr& out_message)
+    static typename std::enable_if<is_number_equal<1, function_traits<Function>::arity>::value>::type 
+    call_member(const Function& func, Self* self, const message_ptr& in_message, const std::string&, message_ptr& out_message)
     {
         out_message = (*self.*func)(in_message);
     }
+    
+    template<typename Function, typename Self>
+    static typename std::enable_if<is_number_equal<2, function_traits<Function>::arity>::value>::type 
+    call_member(const Function& func, Self* self, const message_ptr& in_message, const std::string& session_id, message_ptr& out_message)
+    {
+        out_message = (*self.*func)(in_message, session_id);
+    }
 
     template<typename Function>
-    static typename std::enable_if<!std::is_void<typename std::result_of<Function(const std::string&)>::type>::value>::type
-    call_raw(const Function& func, const std::string& body, std::string& out_body)
+    static typename std::enable_if<is_number_equal<1, function_traits<Function>::arity>::value>::type 
+    call_raw(const Function& func, const std::string& body, const std::string&, std::string& out_body)
     {
         out_body = func(body);
     }
 
+    template<typename Function>
+    static typename std::enable_if<is_number_equal<2, function_traits<Function>::arity>::value>::type 
+    call_raw(const Function& func, const std::string& body, const std::string& session_id, std::string& out_body)
+    {
+        out_body = func(body, session_id);
+    }
+
     template<typename Function, typename Self>
-    static typename std::enable_if<!std::is_void<typename std::result_of<Function(Self, const std::string&)>::type>::value>::type
-    call_member_raw(const Function& func, Self* self, const std::string& body, std::string& out_body)
+    static typename std::enable_if<is_number_equal<1, function_traits<Function>::arity>::value>::type 
+    call_member_raw(const Function& func, Self* self, const std::string& body, const std::string&, std::string& out_body)
     {
         out_body = (*self.*func)(body);
+    }
+
+    template<typename Function, typename Self>
+    static typename std::enable_if<is_number_equal<2, function_traits<Function>::arity>::value>::type 
+    call_member_raw(const Function& func, Self* self, const std::string& body, const std::string& session_id, std::string& out_body)
+    {
+        out_body = (*self.*func)(body, session_id);
     }
 
 private:
@@ -207,11 +242,11 @@ private:
     class invoker
     {
     public:
-        static void apply(const Function& func, const message_ptr& in_message, message_ptr& out_message)
+        static void apply(const Function& func, const message_ptr& in_message, const std::string& session_id, message_ptr& out_message)
         {
             try
             {
-                call(func, in_message, out_message);
+                call(func, in_message, session_id, out_message);
             }
             catch (std::exception& e)
             {
@@ -220,11 +255,11 @@ private:
         }
 
         template<typename Self>
-        static void apply_member(const Function& func, Self* self, const message_ptr& in_message, message_ptr& out_message)
+        static void apply_member(const Function& func, Self* self, const message_ptr& in_message, const std::string& session_id, message_ptr& out_message)
         {
             try
             {
-                call_member(func, self, in_message, out_message);
+                call_member(func, self, in_message, session_id, out_message);
             }
             catch (std::exception& e)
             {
@@ -237,11 +272,11 @@ private:
     class invoker_raw
     {
     public:
-        static void apply(const Function& func, const std::string& body, std::string& out_body)
+        static void apply(const Function& func, const std::string& body, const std::string& session_id, std::string& out_body)
         {
             try
             {
-                call_raw(func, body, out_body);
+                call_raw(func, body, session_id, out_body);
             }
             catch (std::exception& e)
             {
@@ -250,11 +285,11 @@ private:
         }
 
         template<typename Self>
-        static void apply_member(const Function& func, Self* self, const std::string& body, std::string& out_body)
+        static void apply_member(const Function& func, Self* self, const std::string& body, const std::string& session_id, std::string& out_body)
         {
             try
             {
-                call_member_raw(func, self, body, out_body);
+                call_member_raw(func, self, body, session_id, out_body);
             }
             catch (std::exception& e)
             {
@@ -285,7 +320,7 @@ private:
     {
         std::lock_guard<std::mutex> lock(map_mutex_);
         invoker_map_.emplace(protocol, invoker_function{ std::bind(&invoker<Function>::apply, 
-                                                                   func, std::placeholders::_1, std::placeholders::_2) });
+                                                                   func, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3) });
     }
 
     template<typename Function, typename Self>
@@ -293,7 +328,7 @@ private:
     {
         std::lock_guard<std::mutex> lock(map_mutex_);
         invoker_map_.emplace(protocol, invoker_function{ std::bind(&invoker<Function>::template apply_member<Self>, 
-                                                                   func, self, std::placeholders::_1, std::placeholders::_2) });
+                                                                   func, self, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3) });
     }
 
     template<typename Function>
@@ -301,7 +336,7 @@ private:
     {
         std::lock_guard<std::mutex> lock(raw_map_mutex_);
         invoker_raw_map_.emplace(protocol, invoker_function_raw{ std::bind(&invoker_raw<Function>::apply, 
-                                                                           func, std::placeholders::_1, std::placeholders::_2) });
+                                                                           func, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3) });
     }
 
     template<typename Function, typename Self>
@@ -309,7 +344,7 @@ private:
     {
         std::lock_guard<std::mutex> lock(raw_map_mutex_);
         invoker_raw_map_.emplace(protocol, invoker_function_raw{ std::bind(&invoker_raw<Function>::template apply_member<Self>, 
-                                                                           func, self, std::placeholders::_1, std::placeholders::_2) });
+                                                                           func, self, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3) });
     }
 
     bool route_rpc_client(const request_content& content, const client_flag& flag, const connection_ptr& conn)
@@ -349,6 +384,22 @@ private:
     {
         threadpool_.add_task(sub_coming_helper_, content.protocol, content.body, conn);
         return true;
+    }
+
+    void check_bind(const std::string& protocol)
+    {
+        if (is_bind(protocol))
+        {
+            throw std::runtime_error(protocol + " was binded");
+        }
+    }
+
+    void check_bind_raw(const std::string& protocol)
+    {
+        if (is_bind_raw(protocol))
+        {
+            throw std::runtime_error(protocol + " was binded");
+        }
     }
 
 public:
