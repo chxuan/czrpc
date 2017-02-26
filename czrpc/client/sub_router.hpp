@@ -138,25 +138,23 @@ public:
         {
             std::lock_guard<std::mutex> lock(map_mutex_);
             auto iter = invoker_map_.find(content.protocol);
-            if (iter == invoker_map_.end())
+            if (iter != invoker_map_.end())
             {
-                return false;
+                threadpool_.add_task(iter->second, content);
+                return true;
             }
-            /* iter->second(content); */
-            threadpool_.add_task(iter->second, content);
         }
         else if (mode == serialize_mode::non_serialize)
         {
             std::lock_guard<std::mutex> lock(raw_map_mutex_);
             auto iter = invoker_raw_map_.find(content.protocol);
-            if (iter == invoker_raw_map_.end())
+            if (iter != invoker_raw_map_.end())
             {
-                return false;
+                threadpool_.add_task(iter->second, content);
+                return true;
             }
-            /* iter->second(content); */
-            threadpool_.add_task(iter->second, content);
         }
-        return true;
+        return false;
     }
 
     std::vector<std::string> get_all_topic()

@@ -170,7 +170,6 @@ public:
         {
             return route_sub_client(content, conn);
         }
-        log_warn("Invaild client type: {}", static_cast<unsigned int>(flag.type));
         return false;
     }
 
