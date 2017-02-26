@@ -148,7 +148,6 @@ private:
 
             if (ec)
             {
-                log_warn(ec.message());
                 return;
             }
 
@@ -193,7 +192,6 @@ private:
 
             if (ec)
             {
-                log_warn(ec.message());
                 return;
             }
 

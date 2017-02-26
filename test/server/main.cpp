@@ -27,12 +27,12 @@ std::string echo(const std::string& str)
 
 void client_connect_notify(const std::string& session_id)
 {
-    std::cout << "connect session id: " << session_id << std::endl;
+    log_info("connect session id: {}", session_id);
 }
 
 void client_disconnect_notify(const std::string& session_id)
 {
-    std::cout << "disconnect session id: " << session_id << std::endl;
+    log_info("disconnect session id: {}", session_id);
 }
 
 int main()
