@@ -160,50 +160,18 @@ public:
     {
         if (flag.type == client_type::rpc_client || flag.type == client_type::async_rpc_client)
         {
-            if (flag.mode == serialize_mode::serialize)
-            {
-                std::lock_guard<std::mutex> lock(map_mutex_);
-                auto iter = invoker_map_.find(content.protocol);
-                if (iter == invoker_map_.end())
-                {
-                    log_warn("Route failed, not found this protocol: {}", content.protocol);
-                    return false;
-                }
-                threadpool_.add_task(iter->second, content, conn);
-            }
-            else if (flag.mode == serialize_mode::non_serialize)
-            {
-                std::lock_guard<std::mutex> lock(raw_map_mutex_);
-                auto iter = invoker_raw_map_.find(content.protocol);
-                if (iter == invoker_raw_map_.end())
-                {
-                    log_warn("Route failed, not found this protocol: {}", content.protocol);
-                    return false;
-                }
-                threadpool_.add_task(iter->second, content, conn);           
-            }
-            else
-            {
-                log_warn("Invaild serialize mode: {}", static_cast<unsigned int>(flag.mode));
-                return false;
-            }
+            return route_rpc_client(content, flag, conn);
         }
         else if (flag.type == client_type::pub_client)
         {
-            push_content ctx { content.protocol, content.message_name, content.body };
-            threadpool_.add_task(pub_coming_helper_, flag.mode, ctx);
+            return route_pub_client(content, flag);
         }
         else if (flag.type == client_type::sub_client)
         {
-            threadpool_.add_task(sub_coming_helper_, content.protocol, content.body, conn);
+            return route_sub_client(content, conn);
         }
-        else
-        {
-            log_warn("Invaild client type: {}", static_cast<unsigned int>(flag.type));
-            return false;
-        }
-
-        return true;
+        log_warn("Invaild client type: {}", static_cast<unsigned int>(flag.type));
+        return false;
     }
 
 private:
@@ -371,6 +339,45 @@ private:
         std::lock_guard<std::mutex> lock(raw_map_mutex_);
         invoker_raw_map_.emplace(protocol, invoker_function_raw{ std::bind(&invoker_raw<Function>::template apply_member<Self>, 
                                                                            func, self, std::placeholders::_1, std::placeholders::_2) });
+    }
+
+    bool route_rpc_client(const request_content& content, const client_flag& flag, const connection_ptr& conn)
+    {
+        if (flag.mode == serialize_mode::serialize)
+        {
+            std::lock_guard<std::mutex> lock(map_mutex_);
+            auto iter = invoker_map_.find(content.protocol);
+            if (iter != invoker_map_.end())
+            {
+                threadpool_.add_task(iter->second, content, conn);
+                return true;
+            }
+        }
+        else if (flag.mode == serialize_mode::non_serialize)
+        {
+            std::lock_guard<std::mutex> lock(raw_map_mutex_);
+            auto iter = invoker_raw_map_.find(content.protocol);
+            if (iter != invoker_raw_map_.end())
+            {
+                threadpool_.add_task(iter->second, content, conn);           
+                return true;
+            }
+        }
+        log_warn("Route failed, not found this protocol: {}", content.protocol);
+        return false;
+    }
+
+    bool route_pub_client(const request_content& content, const client_flag& flag)
+    {
+        push_content ctx { content.protocol, content.message_name, content.body };
+        threadpool_.add_task(pub_coming_helper_, flag.mode, ctx);
+        return true;
+    }
+
+    bool route_sub_client(const request_content& content, const connection_ptr& conn)
+    {
+        threadpool_.add_task(sub_coming_helper_, content.protocol, content.body, conn);
+        return true;
     }
 
 public:
