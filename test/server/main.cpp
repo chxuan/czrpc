@@ -3,8 +3,9 @@
 #include "proto_message.pb.h"
 
 using namespace czrpc::base;
+using message_ptr = std::shared_ptr<google::protobuf::Message>;
 
-std::shared_ptr<google::protobuf::Message> request_person_info(const std::shared_ptr<google::protobuf::Message>& in_message, const std::string& session_id)
+std::shared_ptr<google::protobuf::Message> request_person_info(const message_ptr& in_message, const std::string& session_id)
 {
     std::cout << "session id: " << session_id << std::endl;
     auto message = std::dynamic_pointer_cast<request_person_info_message>(in_message);
