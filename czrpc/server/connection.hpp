@@ -42,7 +42,6 @@ public:
 
     ~connection()
     {
-        client_disconnect_notify_callback();
         disconnect();
     }
 
@@ -313,6 +312,7 @@ private:
         {
             handle_error_(this->shared_from_this());
         }
+        client_disconnect_notify_callback();
     }
 
     void response_error(const std::string& call_id, rpc_error_code code)
