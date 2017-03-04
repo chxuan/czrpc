@@ -105,6 +105,16 @@ flags = [
 './test/server',
 '-isystem',
 './test/sync_rpc_client',
+'-isystem',
+'./test/async_rpc_client',
+'-isystem',
+'./test/pub_client',
+'-isystem',
+'./test/sub_client',
+'-isystem',
+'./samples',
+'-isystem',
+'./samples/proto/code',
 
 #'-isystem',
 # This path will only work on OS X, but extra paths that don't exist are not
