@@ -49,9 +49,9 @@ public:
         }
     }
 
-    std::vector<connection_weak_ptr> get_connection_by_topic(const std::string& topic_name)
+    std::list<connection_weak_ptr> get_connection_by_topic(const std::string& topic_name)
     {
-        std::vector<connection_weak_ptr> conn_vec;
+        std::list<connection_weak_ptr> conn_vec;
         std::lock_guard<std::mutex> lock(mutex_);
         auto range = topic_map_.equal_range(topic_name);
         for (auto iter = range.first; iter != range.second; ++iter)
