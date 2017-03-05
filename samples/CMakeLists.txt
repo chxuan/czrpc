@@ -24,3 +24,6 @@ target_link_libraries(sample1_server ${LINK_LIST})
 
 add_executable(sample2_server sample2_server.cpp ${PROTO_LIST})
 target_link_libraries(sample2_server ${LINK_LIST})
+
+add_executable(sample3_server sample3_server.cpp ${PROTO_LIST})
+target_link_libraries(sample3_server ${LINK_LIST})
