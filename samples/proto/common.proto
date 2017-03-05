@@ -1,0 +1,6 @@
+message echo_message
+{
+    optional string echo_str = 1;
+    optional int32 echo_num = 2;
+}
+
