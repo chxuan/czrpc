@@ -92,30 +92,30 @@ call_member(const Function& func, Self* self, const message_ptr& req, const std:
 
 template<typename Function>
 static typename std::enable_if<is_number_equal<1, function_traits<Function>::arity>::value>::type 
-call_raw(const Function& func, const std::string& body, const std::string&, std::string& out_body)
+call_raw(const Function& func, const std::string& req, const std::string&, std::string& rsp)
 {
-    out_body = func(body);
+    rsp = func(req);
 }
 
 template<typename Function>
 static typename std::enable_if<is_number_equal<2, function_traits<Function>::arity>::value>::type 
-call_raw(const Function& func, const std::string& body, const std::string& session_id, std::string& out_body)
+call_raw(const Function& func, const std::string& req, const std::string& session_id, std::string& rsp)
 {
-    out_body = func(body, session_id);
+    rsp = func(req, session_id);
 }
 
 template<typename Function, typename Self>
 static typename std::enable_if<is_number_equal<1, function_traits<Function>::arity>::value>::type 
-call_member_raw(const Function& func, Self* self, const std::string& body, const std::string&, std::string& out_body)
+call_member_raw(const Function& func, Self* self, const std::string& req, const std::string&, std::string& rsp)
 {
-    out_body = (*self.*func)(body);
+    rsp = (*self.*func)(req);
 }
 
 template<typename Function, typename Self>
 static typename std::enable_if<is_number_equal<2, function_traits<Function>::arity>::value>::type 
-call_member_raw(const Function& func, Self* self, const std::string& body, const std::string& session_id, std::string& out_body)
+call_member_raw(const Function& func, Self* self, const std::string& req, const std::string& session_id, std::string& rsp)
 {
-    out_body = (*self.*func)(body, session_id);
+    rsp = (*self.*func)(req, session_id);
 }
 
 template<typename Function>
@@ -138,15 +138,15 @@ template<typename Function>
 class invoker_raw
 {
 public:
-    static void apply(const Function& func, const std::string& body, const std::string& session_id, std::string& out_body)
+    static void apply(const Function& func, const std::string& req, const std::string& session_id, std::string& rsp)
     {
-        call_raw(func, body, session_id, out_body);
+        call_raw(func, req, session_id, rsp);
     }
 
     template<typename Self>
-    static void apply_member(const Function& func, Self* self, const std::string& body, const std::string& session_id, std::string& out_body)
+    static void apply_member(const Function& func, Self* self, const std::string& req, const std::string& session_id, std::string& rsp)
     {
-        call_member_raw(func, self, body, session_id, out_body);
+        call_member_raw(func, self, req, session_id, rsp);
     }
 }; 
 
