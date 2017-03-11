@@ -1,5 +1,6 @@
 #pragma once
 
+#include "base/thread_pool.hpp"
 #include "client_base.hpp"
 #include "sub_router.hpp"
 
@@ -24,6 +25,8 @@ public:
 
     virtual void run() override final
     {
+        static const std::size_t thread_num = 1;
+        threadpool_.init_thread_num(thread_num);
         client_base::run();
         sync_connect();
         start_heartbeats_thread();
@@ -250,12 +253,7 @@ private:
             content.protocol.assign(&content_[0], push_head_.protocol_len);
             content.message_name.assign(&content_[push_head_.protocol_len], push_head_.message_name_len);
             content.body.assign(&content_[push_head_.protocol_len + push_head_.message_name_len], push_head_.body_len);
-            bool ok = sub_router::singleton::get()->route(push_head_.mode, content);
-            if (!ok)
-            {
-                log_warn("Router failed");
-                return;
-            }
+            threadpool_.add_task(&sub_client::router_thread, this, push_head_.mode, content);
         });
     }
 
@@ -323,6 +321,23 @@ private:
         }
     }
 
+    void router_thread(serialize_mode mode, const push_content& content)
+    {
+        bool ok = false;
+        if (mode == serialize_mode::serialize)
+        {
+            ok = sub_router::singleton::get()->route(content.protocol, content.message_name, content.body);
+        }
+        else if (mode == serialize_mode::non_serialize)
+        {
+            ok = sub_router::singleton::get()->route_raw(content.protocol, content.body);
+        }
+        if (!ok)
+        {
+            log_warn("Route failed");
+        }
+    }
+
 private:
     char push_head_buf_[push_header_len];
     push_header push_head_;
@@ -332,6 +347,7 @@ private:
     boost::asio::io_service::work heartbeats_work_;
     std::unique_ptr<std::thread> heatbeats_thread_;
     atimer<> heartbeats_timer_;
+    thread_pool threadpool_;
 };
 
 }
