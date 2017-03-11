@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <mutex>
 #include "base/table/threadsafe_unordered_map.hpp"
+#include "base/thread_pool.hpp"
 #include "io_service_pool.hpp"
 #include "router.hpp"
 #include "tcp_endpoint.hpp"
@@ -21,10 +22,7 @@ class server
 public:
     server(const server&) = delete;
     server& operator=(const server&) = delete;
-    server() : timer_work_(timer_ios_), timer_(timer_ios_)
-    {
-        set_pub_sub_callback();
-    }
+    server() : timer_work_(timer_ios_), timer_(timer_ios_) {}
 
     ~server()
     {
@@ -64,7 +62,7 @@ public:
     void run()
     {
         io_service_pool::singleton::get()->multithreaded(ios_thread_num_);
-        router::singleton::get()->multithreaded(work_thread_num_);
+        threadpool_.init_thread_num(work_thread_num_);
         listen();
         accept();
         io_service_pool::singleton::get()->run();
@@ -153,22 +151,86 @@ private:
         }
     }
 
-    void set_pub_sub_callback()
+    void route(const request_content& content, const client_flag& flag, const connection_ptr& conn)
     {
-        router::singleton::get()->publisher_coming_ = std::bind(&server::publisher_coming, this, std::placeholders::_1, std::placeholders::_2);
-        router::singleton::get()->subscriber_coming_ = std::bind(&server::subscriber_coming, 
-                                                                 this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+        threadpool_.add_task(&server::router_thread, this, content, flag, conn);
     }
 
-    bool route(const request_content& content, const client_flag& flag, const connection_ptr& conn)
+    void router_thread(const request_content& content, const client_flag& flag, const connection_ptr& conn)
     {
-        return router::singleton::get()->route(content, flag, conn); 
+        if (flag.type == client_type::rpc_client || flag.type == client_type::async_rpc_client)
+        {
+            rpc_coming(content, flag, conn);
+        }
+        else if (flag.type == client_type::pub_client)
+        {
+            push_content ctx { content.protocol, content.message_name, content.body };
+            publisher_coming(flag.mode, ctx);
+        }
+        else if (flag.type == client_type::sub_client)
+        {
+            subscriber_coming(content.protocol, content.body, conn);
+        }
     }
 
-    void handle_error(const connection_ptr& conn)
+    void rpc_coming(const request_content& content, const client_flag& flag, const connection_ptr& conn)
     {
-        topic_manager::singleton::get()->remove_all_topic(conn);
-        conn_map_.erase(conn);
+        try
+        {
+            if (flag.mode == serialize_mode::serialize)
+            {
+                rpc_coming_with_serialize(content, conn);
+            }
+            else if (flag.mode == serialize_mode::non_serialize)
+            {
+                rpc_coming_with_non_serialize(content, conn);
+            }
+        }
+        catch (std::exception& e)
+        {
+            log_warn(e.what());
+            conn->disconnect();
+        }
+    }
+
+    void rpc_coming_with_serialize(const request_content& content, const connection_ptr& conn)
+    {
+        message_ptr rsp = nullptr;
+        message_ptr req = serialize_util::singleton::get()->deserialize(content.message_name, content.body);
+        if (router::singleton::get()->route(content.protocol, conn->get_session_id(), req, rsp))
+        {
+            if (rsp != nullptr)
+            {
+                std::string message_name = rsp->GetDescriptor()->full_name();
+                std::string body = serialize_util::singleton::get()->serialize(rsp);
+                if (!message_name.empty() && !body.empty())
+                {
+                    conn->async_write(response_content{ content.call_id, message_name, body });
+                }                    
+            }
+        }
+        else
+        {
+            log_warn("Route failed, invaild protocol: {}", content.protocol);
+            response_error(content.call_id, rpc_error_code::route_failed, conn);
+        }
+    }
+
+    void rpc_coming_with_non_serialize(const request_content& content, const connection_ptr& conn)
+    {
+        std::string rsp;
+        if (router::singleton::get()->route_raw(content.protocol, conn->get_session_id(), content.body, rsp))
+        {
+            if (!rsp.empty())
+            {
+                conn->async_write(response_content{ content.call_id, "", rsp });
+            }               
+        }
+        else
+        {
+            log_warn("Route failed, invaild protocol: {}", content.protocol);
+            response_error(content.call_id, rpc_error_code::route_failed, conn);
+        }
     }
 
     void publisher_coming(serialize_mode mode, const push_content& content)
@@ -205,6 +267,19 @@ private:
         {
             topic_manager::singleton::get()->remove_topic(topic_name, conn);
         }
+    }
+
+    void response_error(const std::string& call_id, rpc_error_code code, const connection_ptr& conn)
+    {
+        response_content content;
+        content.call_id = call_id;
+        conn->async_write(content, code);
+    }
+   
+    void handle_error(const connection_ptr& conn)
+    {
+        topic_manager::singleton::get()->remove_all_topic(conn);
+        conn_map_.erase(conn);
     }
 
     void start_timer_thread()
@@ -255,6 +330,7 @@ private:
 
     std::function<void(const std::string&)> client_connect_notify_ = nullptr;
     std::function<void(const std::string&)> client_disconnect_notify_ = nullptr;
+    thread_pool threadpool_;
 };
 
 }

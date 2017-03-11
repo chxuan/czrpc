@@ -21,7 +21,7 @@ namespace server
 class connection;
 using connection_ptr = std::shared_ptr<connection>;
 using connection_weak_ptr = std::weak_ptr<connection>;
-using router_callback = std::function<bool(const request_content&, const client_flag&, const std::shared_ptr<connection>&)>;
+using router_callback = std::function<void(const request_content&, const client_flag&, const std::shared_ptr<connection>&)>;
 using handle_error_callback = std::function<void(const connection_ptr&)>;
 
 class connection : public std::enable_shared_from_this<connection>
@@ -221,12 +221,7 @@ private:
             content.message_name.assign(&content_[req_head_.call_id_len + req_head_.protocol_len], req_head_.message_name_len);
             content.body.assign(&content_[req_head_.call_id_len + req_head_.protocol_len + req_head_.message_name_len], 
                                 req_head_.body_len);
-            bool ok = route_(content, req_head_.flag, self);
-            if (!ok)
-            {
-                response_error(content.call_id, rpc_error_code::route_failed);
-                return;
-            }
+            route_(content, req_head_.flag, self);
             guard.dismiss();
         });
     }
@@ -313,13 +308,6 @@ private:
             handle_error_(this->shared_from_this());
         }
         client_disconnect_notify_callback();
-    }
-
-    void response_error(const std::string& call_id, rpc_error_code code)
-    {
-        response_content content;
-        content.call_id = call_id;
-        async_write(content, code);
     }
 
     void client_connect_notify_callback()
