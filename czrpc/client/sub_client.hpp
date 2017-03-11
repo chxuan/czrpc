@@ -326,7 +326,8 @@ private:
         bool ok = false;
         if (mode == serialize_mode::serialize)
         {
-            ok = sub_router::singleton::get()->route(content.protocol, content.message_name, content.body);
+            message_ptr req = serialize_util::singleton::get()->deserialize(content.message_name, content.body);
+            ok = sub_router::singleton::get()->route(content.protocol, req);
         }
         else if (mode == serialize_mode::non_serialize)
         {

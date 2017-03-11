@@ -20,11 +20,11 @@ public:
     sub_invoker_function() = default;
     sub_invoker_function(const function_t& func) : func_(func) {}
 
-    void operator()(const std::string& message_name, const std::string& req)
+    void operator()(const message_ptr& req)
     {
         try
         {
-            func_(serialize_util::singleton::get()->deserialize(message_name, req));
+            func_(req);
         }
         catch (std::exception& e)
         {

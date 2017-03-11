@@ -61,10 +61,10 @@ public:
         return route_raw_map_.exists(protocol);
     }
 
-    bool route_raw(const std::string& protocol, const std::string& req)
+    bool route(const std::string& protocol, const message_ptr& req)
     {
-        sub_invoker_function_raw func;
-        if (route_raw_map_.find(protocol, func))
+        sub_invoker_function func;
+        if (route_map_.find(protocol, func))
         {
             func(req);
             return true;
@@ -72,12 +72,12 @@ public:
         return false;
     }
 
-    bool route(const std::string& protocol, const std::string& message_name, const std::string& req)
+    bool route_raw(const std::string& protocol, const std::string& req)
     {
-        sub_invoker_function func;
-        if (route_map_.find(protocol, func))
+        sub_invoker_function_raw func;
+        if (route_raw_map_.find(protocol, func))
         {
-            func(message_name, req);
+            func(req);
             return true;
         }
         return false;
