@@ -124,27 +124,13 @@ class invoker
 public:
     static void apply(const Function& func, const message_ptr& req, const std::string& session_id, message_ptr& rsp)
     {
-        try
-        {
-            call(func, req, session_id, rsp);
-        }
-        catch (std::exception& e)
-        {
-            log_warn(e.what());
-        }
+        call(func, req, session_id, rsp);
     }
 
     template<typename Self>
     static void apply_member(const Function& func, Self* self, const message_ptr& req, const std::string& session_id, message_ptr& rsp)
     {
-        try
-        {
-            call_member(func, self, req, session_id, rsp);
-        }
-        catch (std::exception& e)
-        {
-            log_warn(e.what());
-        }
+        call_member(func, self, req, session_id, rsp);
     }
 }; 
 
@@ -154,27 +140,13 @@ class invoker_raw
 public:
     static void apply(const Function& func, const std::string& body, const std::string& session_id, std::string& out_body)
     {
-        try
-        {
-            call_raw(func, body, session_id, out_body);
-        }
-        catch (std::exception& e)
-        {
-            log_warn(e.what());
-        }
+        call_raw(func, body, session_id, out_body);
     }
 
     template<typename Self>
     static void apply_member(const Function& func, Self* self, const std::string& body, const std::string& session_id, std::string& out_body)
     {
-        try
-        {
-            call_member_raw(func, self, body, session_id, out_body);
-        }
-        catch (std::exception& e)
-        {
-            log_warn(e.what());
-        }
+        call_member_raw(func, self, body, session_id, out_body);
     }
 }; 
 

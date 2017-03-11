@@ -93,27 +93,13 @@ class invoker
 public:
     static void apply(const Function& func, const message_ptr& req)
     {
-        try
-        {
-            call(func, req);
-        }
-        catch (std::exception& e)
-        {
-            log_warn(e.what());
-        }
+        call(func, req);
     }
 
     template<typename Self>
     static void apply_member(const Function& func, Self* self, const message_ptr& req)
     {
-        try
-        {
-            call_member(func, self, req);
-        }
-        catch (std::exception& e)
-        {
-            log_warn(e.what());
-        }
+        call_member(func, self, req);
     }
 }; 
 
@@ -123,27 +109,13 @@ class invoker_raw
 public:
     static void apply(const Function& func, const std::string& req)
     {
-        try
-        {
-            call_raw(func, req);
-        }
-        catch (std::exception& e)
-        {
-            log_warn(e.what());
-        }
+        call_raw(func, req);
     }
 
     template<typename Self>
     static void apply_member(const Function& func, Self* self, const std::string& req)
     {
-        try
-        {
-            call_member_raw(func, self, req);
-        }
-        catch (std::exception& e)
-        {
-            log_warn(e.what());
-        }
+        call_member_raw(func, self, req);
     }
 }; 
 
