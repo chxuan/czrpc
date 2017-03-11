@@ -2,7 +2,7 @@
 
 #include "base/table/threadsafe_unordered_map.hpp"
 #include "base/singleton.hpp"
-#include "sub_invoke.hpp"
+#include "sub_invoker.hpp"
 
 using namespace czrpc::base::table;
 
