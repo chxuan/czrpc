@@ -92,6 +92,11 @@ public:
         }
     }
 
+    void set_connect_success_notify(const std::function<void()> func)
+    {
+        connect_success_notify_ = func;
+    }
+
 protected:
     boost::asio::ip::tcp::socket& get_socket()
     {
@@ -107,6 +112,10 @@ protected:
             {
                 connect();
                 is_connected_ = true;
+                if (connect_success_notify_ != nullptr)
+                {
+                    connect_success_notify_();
+                }
                 return true;
             }
         }
@@ -361,6 +370,7 @@ private:
     std::mutex conn_mutex_;
 
     threadsafe_list<std::string> send_queue_;
+    std::function<void()> connect_success_notify_ = nullptr;
 };
 
 }
