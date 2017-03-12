@@ -10,7 +10,6 @@ namespace czrpc
 {
 namespace client
 {
-
 class sub_router
 {
     DEFINE_SINGLETON(sub_router);
