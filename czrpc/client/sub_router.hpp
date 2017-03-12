@@ -86,12 +86,12 @@ public:
     {
         std::vector<std::string> topic_vec;
 
-        route_map_.for_each([&](const std::string& protocol, const sub_invoker_function&)
+        route_map_.for_each_key([&](const std::string& protocol)
         {
             topic_vec.emplace_back(protocol);
         });
 
-        route_raw_map_.for_each([&](const std::string& protocol, const sub_invoker_function_raw&)
+        route_raw_map_.for_each_key([&](const std::string& protocol)
         {
             topic_vec.emplace_back(protocol);
         });

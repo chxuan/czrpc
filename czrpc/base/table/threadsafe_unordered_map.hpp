@@ -72,6 +72,24 @@ public:
         }
     }
 
+    void for_each_key(const std::function<void(const Key&)>& func)
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        for (auto& iter : map_)
+        {
+            func(iter.first);
+        }
+    }
+
+    void for_each_value(const std::function<void(const Value&)>& func)
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        for (auto& iter : map_)
+        {
+            func(iter.second);
+        }
+    }
+
     void for_each_erase(const std::function<bool(const Key&, const Value&)>& func)
     {
         std::lock_guard<std::mutex> lock(mutex_);
