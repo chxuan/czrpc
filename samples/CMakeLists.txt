@@ -45,3 +45,9 @@ target_link_libraries(sample6_server ${LINK_LIST})
 
 add_executable(sample7_client sample7_client.cpp ${PROTO_LIST})
 target_link_libraries(sample7_client ${LINK_LIST})
+
+add_executable(sample8_client sample8_client.cpp ${PROTO_LIST})
+target_link_libraries(sample8_client ${LINK_LIST})
+
+add_executable(sample8_server sample8_server.cpp ${PROTO_LIST})
+target_link_libraries(sample8_server ${LINK_LIST})

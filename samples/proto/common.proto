@@ -4,3 +4,8 @@ message echo_message
     optional int32 echo_num = 2;
 }
 
+message news
+{
+    optional string str = 1;
+}
+
