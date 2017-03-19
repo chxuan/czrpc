@@ -7,7 +7,6 @@
 #include "base/function_traits.hpp"
 #include "base/logger.hpp"
 #include "base/serialize_util.hpp"
-#include "connection.hpp"
 
 namespace czrpc
 {
