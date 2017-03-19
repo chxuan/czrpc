@@ -195,21 +195,10 @@ private:
 
     void rpc_coming_with_serialize(const request_content& content, const connection_ptr& conn)
     {
-        message_ptr rsp = nullptr;
-        message_ptr req = serialize_util::singleton::get()->deserialize(content.message_name, content.body);
-        if (router::singleton::get()->route(content.protocol, conn->get_session_id(), req, rsp))
-        {
-            if (rsp != nullptr)
-            {
-                std::string message_name = rsp->GetDescriptor()->full_name();
-                std::string body = serialize_util::singleton::get()->serialize(rsp);
-                if (!message_name.empty() && !body.empty())
-                {
-                    conn->async_write(response_content{ content.call_id, message_name, body });
-                }                    
-            }
-        }
-        else
+        message_ptr req_message = serialize_util::singleton::get()->deserialize(content.message_name, content.body);
+        auto req = std::make_shared<rpc_request>(req_message, conn->get_session_id());
+        auto rsp = std::make_shared<rpc_response>(conn, content.call_id);
+        if (!router::singleton::get()->route(content.protocol, req, rsp))
         {
             log_warn("Route failed, invaild protocol: {}", content.protocol);
             response_error(content.call_id, rpc_error_code::route_failed, conn);
@@ -218,15 +207,9 @@ private:
 
     void rpc_coming_with_non_serialize(const request_content& content, const connection_ptr& conn)
     {
-        std::string rsp;
-        if (router::singleton::get()->route_raw(content.protocol, conn->get_session_id(), content.body, rsp))
-        {
-            if (!rsp.empty())
-            {
-                conn->async_write(response_content{ content.call_id, "", rsp });
-            }               
-        }
-        else
+        auto req = std::make_shared<rpc_request>(content.body, conn->get_session_id());
+        auto rsp = std::make_shared<rpc_response>(conn, content.call_id);
+        if (!router::singleton::get()->route_raw(content.protocol, req, rsp))
         {
             log_warn("Route failed, invaild protocol: {}", content.protocol);
             response_error(content.call_id, rpc_error_code::route_failed, conn);

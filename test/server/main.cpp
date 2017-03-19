@@ -5,10 +5,10 @@
 using namespace czrpc::base;
 using message_ptr = std::shared_ptr<google::protobuf::Message>;
 
-message_ptr request_person_info(const message_ptr& in_message, const std::string& session_id)
+void request_person_info(const czrpc::server::rpc_request_ptr& req, const czrpc::server::rpc_response_ptr& rsp)
 {
-    std::cout << "session id: " << session_id << std::endl;
-    auto message = std::dynamic_pointer_cast<request_person_info_message>(in_message);
+    std::cout << "session id: " << req->session_id() << std::endl;
+    auto message = std::dynamic_pointer_cast<request_person_info_message>(req->message());
     message->PrintDebugString();
 #if 1
     auto out_message = std::make_shared<response_person_info_message>();
@@ -19,15 +19,15 @@ message_ptr request_person_info(const message_ptr& in_message, const std::string
     out_message->set_error_code(100);
     out_message->set_error_string("Not found person info");
 #endif
-    return out_message;
+    rsp->set_message(out_message);
 }
 
 class test
 {
 public:
-    std::string echo(const std::string& str)
+    void echo(const czrpc::server::rpc_request_ptr& req, const czrpc::server::rpc_response_ptr& rsp)
     {
-        return str;
+        rsp->set_raw_data(req->raw_data());
     }
 };
 
