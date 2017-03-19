@@ -5,10 +5,10 @@
 #include "czrpc/server/server.hpp"
 using namespace czrpc::base;
 
-std::string echo(const std::string& req)
+void echo(const czrpc::message::request_ptr& req, const czrpc::message::response_ptr& rsp)
 {
-    std::cout << req << std::endl;
-    return req;
+    std::cout << req->raw_data() << std::endl;
+    rsp->set_raw_data(req->raw_data());
 }
 
 int main()

@@ -11,10 +11,11 @@ using message_ptr = std::shared_ptr<google::protobuf::Message>;
 class test
 {
 public:
-    message_ptr echo(const message_ptr& req)
+    void echo(const czrpc::message::request_ptr& req, const czrpc::message::response_ptr& rsp)
     {
-        req->PrintDebugString();
-        return req;
+        std::cout << "session_id: " << req->session_id() << std::endl;
+        req->message()->PrintDebugString();
+        rsp->set_message(req->message());
     }
 };
 

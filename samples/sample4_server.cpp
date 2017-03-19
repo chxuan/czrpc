@@ -6,13 +6,12 @@
 #include "common.pb.h"
 
 using namespace czrpc::base;
-using message_ptr = std::shared_ptr<google::protobuf::Message>;
 
-message_ptr echo(const message_ptr& req, const std::string& session_id)
+void echo(const czrpc::message::request_ptr& req, const czrpc::message::response_ptr& rsp)
 {
-    std::cout << "session_id: " << session_id << std::endl;
-    req->PrintDebugString();
-    return req;
+    std::cout << "session_id: " << req->session_id() << std::endl;
+    req->message()->PrintDebugString();
+    rsp->set_message(req->message());
 }
 
 void client_connect_notify(const std::string& session_id)
