@@ -5,7 +5,7 @@
 using namespace czrpc::base;
 using message_ptr = std::shared_ptr<google::protobuf::Message>;
 
-void request_person_info(const czrpc::server::rpc_request_ptr& req, const czrpc::server::rpc_response_ptr& rsp)
+void request_person_info(const czrpc::message::request_ptr& req, const czrpc::message::response_ptr& rsp)
 {
     std::cout << "session id: " << req->session_id() << std::endl;
     auto message = std::dynamic_pointer_cast<request_person_info_message>(req->message());
@@ -25,7 +25,7 @@ void request_person_info(const czrpc::server::rpc_request_ptr& req, const czrpc:
 class test
 {
 public:
-    void echo(const czrpc::server::rpc_request_ptr& req, const czrpc::server::rpc_response_ptr& rsp)
+    void echo(const czrpc::message::request_ptr& req, const czrpc::message::response_ptr& rsp)
     {
         rsp->set_raw_data(req->raw_data());
     }

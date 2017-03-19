@@ -64,7 +64,7 @@ public:
         return route_raw_map_.exists(protocol);
     }
 
-    bool route(const std::string& protocol, const rpc_request_ptr& req, const rpc_response_ptr& rsp)
+    bool route(const std::string& protocol, const request_ptr& req, const response_ptr& rsp)
     {
         invoker_function func;
         if (route_map_.find(protocol, func))
@@ -75,7 +75,7 @@ public:
         return false;
     }
 
-    bool route_raw(const std::string& protocol, const rpc_request_ptr& req, const rpc_response_ptr& rsp)
+    bool route_raw(const std::string& protocol, const request_ptr& req, const response_ptr& rsp)
     {
         invoker_function func;
         if (route_raw_map_.find(protocol, func))

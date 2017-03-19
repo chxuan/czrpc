@@ -3,17 +3,20 @@
 #include "base/serialize_util.hpp"
 #include "connection.hpp"
 
+using namespace czrpc::server;
+
 namespace czrpc
 {
-namespace server
+namespace message
 {
-class rpc_request
+class request
 {
 public:
-    rpc_request(const message_ptr& message, const std::string& session_id) 
+    request(const message_ptr& message, const std::string& session_id) 
         : message_(message), session_id_(session_id) {}
-    rpc_request(const std::string& raw_data, const std::string& session_id) 
+    request(const std::string& raw_data, const std::string& session_id) 
         : raw_data_(raw_data), session_id_(session_id) {}
+
     message_ptr message() const { return message_; }
     std::string raw_data() const { return raw_data_; }
     std::string session_id() const { return session_id_; }
@@ -23,12 +26,12 @@ private:
     std::string raw_data_;
     std::string session_id_;
 };
-using rpc_request_ptr = std::shared_ptr<rpc_request>;
+using request_ptr = std::shared_ptr<request>;
 
-class rpc_response
+class response
 {
 public:
-    rpc_response(const connection_ptr& conn, const std::string& call_id) : connect_(conn), call_id_(call_id) {}
+    response(const connection_ptr& conn, const std::string& call_id) : connect_(conn), call_id_(call_id) {}
     void set_message(const message_ptr& message) 
     { 
         if (message != nullptr)
@@ -41,6 +44,7 @@ public:
             }                    
         }
     }
+
     void set_raw_data(const std::string& raw_data) 
     {
         if (!raw_data.empty())
@@ -53,7 +57,7 @@ private:
     connection_ptr connect_;
     std::string call_id_;
 };
-using rpc_response_ptr = std::shared_ptr<rpc_response>;
+using response_ptr = std::shared_ptr<response>;
 
 }
 }

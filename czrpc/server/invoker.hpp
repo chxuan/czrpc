@@ -8,6 +8,8 @@
 #include "base/function_traits.hpp"
 #include "base/logger.hpp"
 
+using namespace czrpc::message;
+
 namespace czrpc
 {
 namespace server
@@ -15,11 +17,11 @@ namespace server
 class invoker_function
 {
 public:
-    using function_t = std::function<void(const rpc_request_ptr&, const rpc_response_ptr&)>;
+    using function_t = std::function<void(const request_ptr&, const response_ptr&)>;
     invoker_function() = default;
     invoker_function(const function_t& func) : func_(func) {}
 
-    void operator()(const rpc_request_ptr& req, const rpc_response_ptr& rsp)
+    void operator()(const request_ptr& req, const response_ptr& rsp)
     {
         try
         {
@@ -36,13 +38,13 @@ private:
 };
 
 template<typename Function>
-static void call(const Function& func, const rpc_request_ptr& req, const rpc_response_ptr& rsp)
+static void call(const Function& func, const request_ptr& req, const response_ptr& rsp)
 {
     func(req, rsp);
 }
 
 template<typename Function, typename Self>
-static void call_member(const Function& func, Self* self, const rpc_request_ptr& req, const rpc_response_ptr& rsp)
+static void call_member(const Function& func, Self* self, const request_ptr& req, const response_ptr& rsp)
 {
     (*self.*func)(req, rsp);
 }
@@ -51,13 +53,13 @@ template<typename Function>
 class invoker
 {
 public:
-    static void apply(const Function& func, const rpc_request_ptr& req, const rpc_response_ptr& rsp)
+    static void apply(const Function& func, const request_ptr& req, const response_ptr& rsp)
     {
         call(func, req, rsp);
     }
 
     template<typename Self>
-    static void apply_member(const Function& func, Self* self, const rpc_request_ptr& req, const rpc_response_ptr& rsp)
+    static void apply_member(const Function& func, Self* self, const request_ptr& req, const response_ptr& rsp)
     {
         call_member(func, self, req, rsp);
     }

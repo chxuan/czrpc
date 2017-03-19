@@ -196,8 +196,8 @@ private:
     void rpc_coming_with_serialize(const request_content& content, const connection_ptr& conn)
     {
         message_ptr req_message = serialize_util::singleton::get()->deserialize(content.message_name, content.body);
-        auto req = std::make_shared<rpc_request>(req_message, conn->get_session_id());
-        auto rsp = std::make_shared<rpc_response>(conn, content.call_id);
+        auto req = std::make_shared<request>(req_message, conn->get_session_id());
+        auto rsp = std::make_shared<response>(conn, content.call_id);
         if (!router::singleton::get()->route(content.protocol, req, rsp))
         {
             log_warn("Route failed, invaild protocol: {}", content.protocol);
@@ -207,8 +207,8 @@ private:
 
     void rpc_coming_with_non_serialize(const request_content& content, const connection_ptr& conn)
     {
-        auto req = std::make_shared<rpc_request>(content.body, conn->get_session_id());
-        auto rsp = std::make_shared<rpc_response>(conn, content.call_id);
+        auto req = std::make_shared<request>(content.body, conn->get_session_id());
+        auto rsp = std::make_shared<response>(conn, content.call_id);
         if (!router::singleton::get()->route_raw(content.protocol, req, rsp))
         {
             log_warn("Route failed, invaild protocol: {}", content.protocol);
