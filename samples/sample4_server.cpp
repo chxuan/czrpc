@@ -11,7 +11,7 @@ void echo(const czrpc::message::request_ptr& req, const czrpc::message::response
 {
     std::cout << "session_id: " << req->session_id() << std::endl;
     req->message()->PrintDebugString();
-    rsp->set_message(req->message());
+    rsp->set_response(req->message());
 }
 
 void client_connect_notify(const std::string& session_id)

@@ -8,7 +8,7 @@ using namespace czrpc::base;
 void echo(const czrpc::message::request_ptr& req, const czrpc::message::response_ptr& rsp)
 {
     std::cout << req->raw_data() << std::endl;
-    rsp->set_raw_data(req->raw_data());
+    rsp->set_response(req->raw_data());
 }
 
 int main()

@@ -27,7 +27,7 @@ A modern RPC framework based on protobuf
     
     void echo(const czrpc::message::request_ptr& req, const czrpc::message::response_ptr& rsp)
     {
-        rsp->set_message(req->message());
+        rsp->set_response(req->message());
     }
     
     int main()

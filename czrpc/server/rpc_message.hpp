@@ -32,7 +32,7 @@ class response
 {
 public:
     response(const connection_ptr& conn, const std::string& call_id) : connect_(conn), call_id_(call_id) {}
-    void set_message(const message_ptr& message) 
+    void set_response(const message_ptr& message) 
     { 
         if (message != nullptr)
         {
@@ -45,7 +45,7 @@ public:
         }
     }
 
-    void set_raw_data(const std::string& raw_data) 
+    void set_response(const std::string& raw_data) 
     {
         if (!raw_data.empty())
         {

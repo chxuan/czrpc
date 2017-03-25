@@ -19,7 +19,7 @@ void request_person_info(const czrpc::message::request_ptr& req, const czrpc::me
     out_message->set_error_code(100);
     out_message->set_error_string("Not found person info");
 #endif
-    rsp->set_message(out_message);
+    rsp->set_response(out_message);
 }
 
 class test
@@ -27,7 +27,7 @@ class test
 public:
     void echo(const czrpc::message::request_ptr& req, const czrpc::message::response_ptr& rsp)
     {
-        rsp->set_raw_data(req->raw_data());
+        rsp->set_response(req->raw_data());
     }
 };
 

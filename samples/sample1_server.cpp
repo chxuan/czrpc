@@ -10,7 +10,7 @@ using namespace czrpc::base;
 void echo(const czrpc::message::request_ptr& req, const czrpc::message::response_ptr& rsp)
 {
     req->message()->PrintDebugString();
-    rsp->set_message(req->message());
+    rsp->set_response(req->message());
 }
 
 int main()

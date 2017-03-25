@@ -15,7 +15,7 @@ public:
     {
         std::cout << "session_id: " << req->session_id() << std::endl;
         req->message()->PrintDebugString();
-        rsp->set_message(req->message());
+        rsp->set_response(req->message());
     }
 };
 
