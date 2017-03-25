@@ -6,7 +6,7 @@ A modern RPC framework based on protobuf
 ![License][1] 
 
 ## Getting started
-首先下载easyrpc：
+首先下载czrpc：
 
     git clone https://github.com/chxuan/czrpc.git
 
@@ -21,7 +21,6 @@ A modern RPC framework based on protobuf
 * **Simple server**
 
     ```cpp
-    #include <iostream>
     #include "czrpc/server/server.hpp"
     #include "common.pb.h"
     using namespace czrpc::base;
@@ -77,8 +76,6 @@ A modern RPC framework based on protobuf
     
             // 3.同步调用echo函数
             auto rsp = client.call("echo", req);
-    
-            rsp->PrintDebugString();
         }
         catch (std::exception& e)
         {
@@ -122,7 +119,7 @@ A modern RPC framework based on protobuf
 
 
 ## License
-This software is licensed under the [MIT license][3]. © 2016 chxuan
+This software is licensed under the [MIT license][3]. © 2017 chxuan
 
 
   [1]: http://img.shields.io/badge/license-MIT-blue.svg?style=flat-square
