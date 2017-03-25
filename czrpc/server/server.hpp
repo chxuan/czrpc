@@ -4,7 +4,6 @@
 #include <vector>
 #include <unordered_map>
 #include <mutex>
-#include "base/table/threadsafe_unordered_map.hpp"
 #include "base/thread_pool.hpp"
 #include "io_service_pool.hpp"
 #include "router.hpp"
@@ -22,8 +21,7 @@ class server
 public:
     server(const server&) = delete;
     server& operator=(const server&) = delete;
-    server() : timer_work_(timer_ios_), timer_(timer_ios_) {}
-
+    server() = default;
     ~server()
     {
         stop();
@@ -66,12 +64,10 @@ public:
         listen();
         accept();
         io_service_pool::singleton::get()->run();
-        start_timer_thread();
     }
 
     void stop()
     {
-        stop_timer_thread();
         io_service_pool::singleton::get()->stop();
     }
 
@@ -239,11 +235,10 @@ private:
     {
         if (topic_name == heartbeats_flag && body == heartbeats_flag)
         {
-            conn_map_.replace(conn, time(nullptr));
+            // do nothing.
         }
         else if (topic_name != heartbeats_flag && body == subscribe_topic_flag)
         {
-            conn_map_.replace(conn, time(nullptr));
             topic_manager::singleton::get()->add_topic(topic_name, conn);
         }
         else if (topic_name != heartbeats_flag && body == cancel_subscribe_topic_flag)
@@ -262,39 +257,6 @@ private:
     void handle_error(const connection_ptr& conn)
     {
         topic_manager::singleton::get()->remove_all_topic(conn);
-        conn_map_.erase(conn);
-    }
-
-    void start_timer_thread()
-    {
-        timer_thread_ = std::make_unique<std::thread>([this]{ timer_ios_.run(); });
-        timer_.bind([this]{ check_connection_timeout(); });
-        timer_.start(connection_timeout_milli);
-    }
-
-    void stop_timer_thread()
-    {
-        timer_ios_.stop();
-        if (timer_thread_ != nullptr)
-        {
-            if (timer_thread_->joinable())
-            {
-                timer_thread_->join();
-            }
-        }
-    }
-
-    void check_connection_timeout()
-    {
-        auto conn_map = conn_map_.clone();
-        time_t current_time = time(nullptr);
-        for (auto& iter : conn_map)
-        {
-            if (current_time - iter.second >= connection_timeout_sec)
-            {
-                iter.first->disconnect();
-            }
-        }
     }
 
 private:
@@ -304,12 +266,6 @@ private:
 
     std::vector<endpoint> endpoint_vec_;
     std::vector<std::shared_ptr<tcp_endpoint>> tcp_endpoint_vec_;
-    threadsafe_unordered_map<connection_ptr, time_t> conn_map_;
-
-    boost::asio::io_service timer_ios_;
-    boost::asio::io_service::work timer_work_;
-    std::unique_ptr<std::thread> timer_thread_;
-    atimer<> timer_;
 
     std::function<void(const std::string&)> client_connect_notify_ = nullptr;
     std::function<void(const std::string&)> client_disconnect_notify_ = nullptr;

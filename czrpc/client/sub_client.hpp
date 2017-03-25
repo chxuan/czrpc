@@ -254,23 +254,27 @@ private:
             content.message_name.assign(&content_[push_head_.protocol_len], push_head_.message_name_len);
             content.body.assign(&content_[push_head_.protocol_len + push_head_.message_name_len], push_head_.body_len);
             threadpool_.add_task(&sub_client::router_thread, this, push_head_.mode, content);
+            last_active_time_ = time(nullptr);
         });
     }
 
     void heartbeats_timer()
     {
-        try
+        if ((time(nullptr) - last_active_time_) * 1000 > heartbeats_milli)
         {
-            sync_connect();
-            client_flag flag{ serialize_mode::serialize, client_type_ };
-            request_content content;
-            content.protocol = heartbeats_flag;
-            content.body = heartbeats_flag;
-            async_call_one_way(flag, content);
-        }
-        catch (std::exception& e)
-        {
-            log_warn(e.what());
+            try
+            {
+                sync_connect();
+                client_flag flag{ serialize_mode::serialize, client_type_ };
+                request_content content;
+                content.protocol = heartbeats_flag;
+                content.body = heartbeats_flag;
+                async_call_one_way(flag, content);
+            }
+            catch (std::exception& e)
+            {
+                log_warn(e.what());
+            }
         }
     }
 
@@ -349,6 +353,7 @@ private:
     std::unique_ptr<std::thread> heatbeats_thread_;
     atimer<> heartbeats_timer_;
     thread_pool threadpool_;
+    time_t last_active_time_ = 0;
 };
 
 }
