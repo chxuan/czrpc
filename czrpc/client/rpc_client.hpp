@@ -2,7 +2,6 @@
 
 #include <unordered_map>
 #include <mutex>
-#include "base/common_util.hpp"
 #include "client_base.hpp"
 
 namespace czrpc
