@@ -31,7 +31,7 @@ using request_ptr = std::shared_ptr<request>;
 class response
 {
 public:
-    response(const connection_ptr& conn, const std::string& call_id) : connect_(conn), call_id_(call_id) {}
+    response(const connection_ptr& conn, unsigned int call_id) : connect_(conn), call_id_(call_id) {}
     void set_response(const message_ptr& message) 
     { 
         if (message != nullptr)
@@ -55,7 +55,7 @@ public:
 
 private:
     connection_ptr connect_;
-    std::string call_id_;
+    unsigned int call_id_ = 0;
 };
 using response_ptr = std::shared_ptr<response>;
 

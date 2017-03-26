@@ -247,7 +247,7 @@ private:
         }
     }
 
-    void response_error(const std::string& call_id, rpc_error_code code, const connection_ptr& conn)
+    void response_error(unsigned int call_id, rpc_error_code code, const connection_ptr& conn)
     {
         response_content content;
         content.call_id = call_id;

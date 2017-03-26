@@ -2,7 +2,6 @@
 
 #include <unordered_map>
 #include <mutex>
-#include "base/common_util.hpp"
 #include "base/table/threadsafe_unordered_map.hpp"
 #include "base/thread_pool.hpp"
 #include "client_base.hpp"
@@ -18,7 +17,7 @@ class async_rpc_client : public client_base
 public:
     async_rpc_client(const async_rpc_client&) = delete;
     async_rpc_client& operator=(const async_rpc_client&) = delete;
-    async_rpc_client() : timer_work_(timer_ios_), timer_(timer_ios_) 
+    async_rpc_client() : timer_work_(timer_ios_), timer_(timer_ios_), call_id_(0)
     {
         client_type_ = client_type::async_rpc_client;
     }
@@ -111,7 +110,7 @@ public:
         serialize_util::singleton::get()->check_message(message);
         sync_connect();
         request_content content;
-        content.call_id = gen_uuid();
+        content.call_id = ++call_id_;
         content.protocol = func_name;
         content.message_name = message->GetDescriptor()->full_name();
         content.body = serialize_util::singleton::get()->serialize(message);
@@ -124,7 +123,7 @@ public:
     {
         sync_connect();
         request_content content;
-        content.call_id = gen_uuid();
+        content.call_id = ++call_id_;
         content.protocol = func_name;
         content.body = body;
 
@@ -164,7 +163,7 @@ private:
     bool async_check_head()
     {
         memcpy(&res_head_, res_head_buf_, sizeof(res_head_buf_));
-        if (res_head_.call_id_len + res_head_.message_name_len + res_head_.body_len > max_buffer_len)
+        if (res_head_.message_name_len + res_head_.body_len > max_buffer_len)
         {
             log_warn("Content len is too big");
             return false;
@@ -175,7 +174,7 @@ private:
     void async_read_content()
     {
         content_.clear();
-        content_.resize(res_head_.call_id_len + res_head_.message_name_len + res_head_.body_len);
+        content_.resize(sizeof(unsigned int) + res_head_.message_name_len + res_head_.body_len);
         boost::asio::async_read(get_socket(), boost::asio::buffer(content_), 
                                 [this](boost::system::error_code ec, std::size_t)
         {
@@ -194,14 +193,14 @@ private:
             }
 
             response_content content;
-            content.call_id.assign(&content_[0], res_head_.call_id_len);
-            content.message_name.assign(&content_[res_head_.call_id_len], res_head_.message_name_len);
-            content.body.assign(&content_[res_head_.call_id_len + res_head_.message_name_len], res_head_.body_len);
+            memcpy(&content.call_id, &content_[0], sizeof(content.call_id));
+            content.message_name.assign(&content_[sizeof(content.call_id)], res_head_.message_name_len);
+            content.body.assign(&content_[sizeof(content.call_id) + res_head_.message_name_len], res_head_.body_len);
             route(content);
         });
     }
 
-    void add_bind_func(const std::string& call_id, const task_t& task)
+    void add_bind_func(unsigned int call_id, const task_t& task)
     {
         auto begin_time = std::chrono::high_resolution_clock::now();
         task_with_timepoint task_time{ task, begin_time };
@@ -234,7 +233,7 @@ private:
     void check_request_timeout()
     {
         auto current_time = std::chrono::high_resolution_clock::now();
-        task_map_.for_each_erase([&](const std::string&, const task_with_timepoint& task_time)
+        task_map_.for_each_erase([&](int, const task_with_timepoint& task_time)
         {
             auto elapsed_time = current_time - task_time.time;
             if (std::chrono::duration_cast<std::chrono::milliseconds>(elapsed_time).count() >= static_cast<long>(timeout_milli_))
@@ -284,8 +283,9 @@ private:
         task_t task;
         std::chrono::time_point<std::chrono::high_resolution_clock> time;
     };
-    threadsafe_unordered_map<std::string, task_with_timepoint> task_map_;
+    threadsafe_unordered_map<unsigned int, task_with_timepoint> task_map_;
     thread_pool threadpool_;
+    std::atomic<unsigned int> call_id_;
 };
 
 }

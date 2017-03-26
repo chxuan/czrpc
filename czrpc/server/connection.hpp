@@ -59,16 +59,15 @@ public:
 
     void write(const response_content& content, rpc_error_code code = rpc_error_code::ok)
     {
-        unsigned int call_id_len = static_cast<unsigned int>(content.call_id.size());
         unsigned int message_name_len = static_cast<unsigned int>(content.message_name.size());
         unsigned int body_len = static_cast<unsigned int>(content.body.size());
-        if (call_id_len + message_name_len + body_len > max_buffer_len)
+        if (message_name_len + body_len > max_buffer_len)
         {
             handle_error();
             throw std::runtime_error("Send data is too big");
         }
 
-        response_header header{ call_id_len, message_name_len, body_len, code };
+        response_header header{ message_name_len, body_len, code };
         std::string buffer = get_buffer(response_data{ header, content });
         write_impl(buffer);
     }
@@ -91,16 +90,15 @@ public:
 
     void async_write(const response_content& content, rpc_error_code code = rpc_error_code::ok)
     {
-        unsigned int call_id_len = static_cast<unsigned int>(content.call_id.size());
         unsigned int message_name_len = static_cast<unsigned int>(content.message_name.size());
         unsigned int body_len = static_cast<unsigned int>(content.body.size());
-        if (call_id_len + message_name_len + body_len > max_buffer_len)
+        if (message_name_len + body_len > max_buffer_len)
         {
             handle_error();
             throw std::runtime_error("Send data is too big");
         }
 
-        response_header header{ call_id_len, message_name_len, body_len, code };
+        response_header header{ message_name_len, body_len, code };
         std::string buffer = get_buffer(response_data{ header, content });
         async_write_impl(buffer);
     }
@@ -186,7 +184,7 @@ private:
     bool check_head()
     {
         memcpy(&req_head_, req_head_buf_, sizeof(req_head_buf_));
-        if (req_head_.call_id_len + req_head_.protocol_len + req_head_.message_name_len + req_head_.body_len > max_buffer_len)
+        if (req_head_.protocol_len + req_head_.message_name_len + req_head_.body_len > max_buffer_len)
         {
             log_warn("Content len is too big");
             return false;
@@ -197,7 +195,7 @@ private:
     void read_content()
     {
         content_.clear();
-        content_.resize(req_head_.call_id_len + req_head_.protocol_len + req_head_.message_name_len + req_head_.body_len);
+        content_.resize(sizeof(unsigned int) + req_head_.protocol_len + req_head_.message_name_len + req_head_.body_len);
         auto self(this->shared_from_this());
         boost::asio::async_read(socket_, boost::asio::buffer(content_), 
                                 [this, self](boost::system::error_code ec, std::size_t)
@@ -216,10 +214,10 @@ private:
             }
 
             request_content content;
-            content.call_id.assign(&content_[0], req_head_.call_id_len);
-            content.protocol.assign(&content_[req_head_.call_id_len], req_head_.protocol_len);
-            content.message_name.assign(&content_[req_head_.call_id_len + req_head_.protocol_len], req_head_.message_name_len);
-            content.body.assign(&content_[req_head_.call_id_len + req_head_.protocol_len + req_head_.message_name_len], 
+            memcpy(&content.call_id, &content_[0], sizeof(content.call_id));
+            content.protocol.assign(&content_[sizeof(content.call_id)], req_head_.protocol_len);
+            content.message_name.assign(&content_[sizeof(content.call_id) + req_head_.protocol_len], req_head_.message_name_len);
+            content.body.assign(&content_[sizeof(content.call_id) + req_head_.protocol_len + req_head_.message_name_len], 
                                 req_head_.body_len);
             route_(content, req_head_.flag, self);
             guard.dismiss();
@@ -237,7 +235,7 @@ private:
     {
         std::string buffer;
         buffer.append(reinterpret_cast<const char*>(&data.header), sizeof(data.header));
-        buffer.append(data.content.call_id);
+        buffer.append(reinterpret_cast<const char*>(&data.content.call_id), sizeof(data.content.call_id));
         buffer.append(data.content.message_name);
         buffer.append(data.content.body);
         return std::move(buffer);

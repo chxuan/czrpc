@@ -127,7 +127,7 @@ private:
     {
         std::string buffer;
         buffer.append(reinterpret_cast<const char*>(&data.header), sizeof(data.header));
-        buffer.append(data.content.call_id);
+        buffer.append(reinterpret_cast<const char*>(&data.content.call_id), sizeof(data.content.call_id));
         buffer.append(data.content.protocol);
         buffer.append(data.content.message_name);
         buffer.append(data.content.body);
@@ -160,13 +160,12 @@ private:
     void write(const client_flag& flag, const request_content& content)
     {
         request_header header;
-        header.call_id_len = content.call_id.size();
         header.protocol_len = content.protocol.size();
         header.message_name_len = content.message_name.size();
         header.body_len = content.body.size();
         header.flag = flag;
 
-        if (header.call_id_len + header.protocol_len + header.message_name_len + header.body_len > max_buffer_len)
+        if (header.protocol_len + header.message_name_len + header.body_len > max_buffer_len)
         {
             throw std::runtime_error("Send data is too big");
         }
@@ -178,13 +177,12 @@ private:
     void async_write(const client_flag& flag, const request_content& content)
     {
         request_header header;
-        header.call_id_len = content.call_id.size();
         header.protocol_len = content.protocol.size();
         header.message_name_len = content.message_name.size();
         header.body_len = content.body.size();
         header.flag = flag;
 
-        if (header.call_id_len + header.protocol_len + header.message_name_len + header.body_len > max_buffer_len)
+        if (header.protocol_len + header.message_name_len + header.body_len > max_buffer_len)
         {
             throw std::runtime_error("Send data is too big");
         }
@@ -262,7 +260,7 @@ private:
     void check_head()
     {
         memcpy(&res_head_, res_head_buf_, sizeof(res_head_buf_));
-        if (res_head_.call_id_len + res_head_.message_name_len + res_head_.body_len > max_buffer_len)
+        if (res_head_.message_name_len + res_head_.body_len > max_buffer_len)
         {
             throw std::runtime_error("Content len is too big");
         }
@@ -275,7 +273,7 @@ private:
     response_content read_content()
     {
         content_.clear();
-        content_.resize(res_head_.call_id_len + res_head_.message_name_len + res_head_.body_len);
+        content_.resize(sizeof(unsigned int) + res_head_.message_name_len + res_head_.body_len);
         boost::system::error_code ec;
         boost::asio::read(socket_, boost::asio::buffer(content_), ec); 
         if (ec)
@@ -285,9 +283,9 @@ private:
         }
 
         response_content content;
-        content.call_id.assign(&content_[0], res_head_.call_id_len);
-        content.message_name.assign(&content_[res_head_.call_id_len], res_head_.message_name_len);
-        content.body.assign(&content_[res_head_.call_id_len + res_head_.message_name_len], res_head_.body_len);
+        memcpy(&content.call_id, &content_[0], sizeof(content.call_id));
+        content.message_name.assign(&content_[sizeof(content.call_id)], res_head_.message_name_len);
+        content.body.assign(&content_[sizeof(content.call_id) + res_head_.message_name_len], res_head_.body_len);
         return std::move(content);
     }
 
