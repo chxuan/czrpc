@@ -40,7 +40,7 @@ public:
             std::string body = serialize_util::singleton::get()->serialize(message);
             if (!message_name.empty() && !body.empty())
             {
-                connect_->async_write(response_content{ call_id_, message_name, body });
+                connect_->async_write(response_content{ call_id_, rpc_error_code::ok, message_name, body });
             }                    
         }
     }
@@ -49,7 +49,7 @@ public:
     {
         if (!raw_data.empty())
         {
-            connect_->async_write(response_content{ call_id_, "", raw_data });
+            connect_->async_write(response_content{ call_id_, rpc_error_code::ok, "", raw_data });
         }         
     }
 

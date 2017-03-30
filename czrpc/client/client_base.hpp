@@ -263,16 +263,12 @@ private:
         {
             throw std::runtime_error("Content len is too big");
         }
-        if (res_head_.code != rpc_error_code::ok)
-        {
-            throw std::runtime_error(get_rpc_error_string(res_head_.code));
-        }
     }
 
     response_content read_content()
     {
         content_.clear();
-        content_.resize(sizeof(unsigned int) + res_head_.message_name_len + res_head_.body_len);
+        content_.resize(sizeof(unsigned int) + sizeof(rpc_error_code) + res_head_.message_name_len + res_head_.body_len);
         boost::system::error_code ec;
         boost::asio::read(socket_, boost::asio::buffer(content_), ec); 
         if (ec)
@@ -283,8 +279,14 @@ private:
 
         response_content content;
         memcpy(&content.call_id, &content_[0], sizeof(content.call_id));
-        content.message_name.assign(&content_[sizeof(content.call_id)], res_head_.message_name_len);
-        content.body.assign(&content_[sizeof(content.call_id) + res_head_.message_name_len], res_head_.body_len);
+        memcpy(&content.code, &content_[sizeof(content.call_id)], sizeof(content.code));
+        if (content.code != rpc_error_code::ok)
+        {
+            throw std::runtime_error(get_rpc_error_string(content.code));
+        }
+
+        content.message_name.assign(&content_[sizeof(content.call_id) + sizeof(content.code)], res_head_.message_name_len);
+        content.body.assign(&content_[sizeof(content.call_id) + sizeof(content.code) + res_head_.message_name_len], res_head_.body_len);
         return std::move(content);
     }
 

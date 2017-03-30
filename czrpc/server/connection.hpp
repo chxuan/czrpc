@@ -57,7 +57,7 @@ public:
         return socket_;
     }
 
-    void write(const response_content& content, rpc_error_code code = rpc_error_code::ok)
+    void write(const response_content& content)
     {
         unsigned int message_name_len = static_cast<unsigned int>(content.message_name.size());
         unsigned int body_len = static_cast<unsigned int>(content.body.size());
@@ -67,7 +67,7 @@ public:
             throw std::runtime_error("Send data is too big");
         }
 
-        response_header header{ message_name_len, body_len, code };
+        response_header header{ message_name_len, body_len };
         std::string buffer = get_buffer(response_data{ header, content });
         write_impl(buffer);
     }
@@ -88,7 +88,7 @@ public:
         write_impl(buffer);
     }
 
-    void async_write(const response_content& content, rpc_error_code code = rpc_error_code::ok)
+    void async_write(const response_content& content)
     {
         unsigned int message_name_len = static_cast<unsigned int>(content.message_name.size());
         unsigned int body_len = static_cast<unsigned int>(content.body.size());
@@ -98,7 +98,7 @@ public:
             throw std::runtime_error("Send data is too big");
         }
 
-        response_header header{ message_name_len, body_len, code };
+        response_header header{ message_name_len, body_len };
         std::string buffer = get_buffer(response_data{ header, content });
         async_write_impl(buffer);
     }
@@ -238,6 +238,7 @@ private:
         std::string buffer;
         buffer.append(reinterpret_cast<const char*>(&data.header), sizeof(data.header));
         buffer.append(reinterpret_cast<const char*>(&data.content.call_id), sizeof(data.content.call_id));
+        buffer.append(reinterpret_cast<const char*>(&data.content.code), sizeof(data.content.code));
         buffer.append(data.content.message_name);
         buffer.append(data.content.body);
         return std::move(buffer);

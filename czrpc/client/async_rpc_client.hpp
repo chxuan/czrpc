@@ -43,7 +43,7 @@ public:
         threadpool_.stop();
     }
 
-    using task_t = std::function<void(const response_content&, const czrpc::base::error_code&)>; 
+    using task_t = std::function<void(const response_content&)>; 
     class rpc_task
     {
     public:
@@ -52,10 +52,11 @@ public:
 
         void result(const std::function<void(const message_ptr&, const czrpc::base::error_code&)>& func)
         {
-            task_ = [func, this](const response_content& content, const czrpc::base::error_code& ec)
+            task_ = [func, this](const response_content& content)
             {
                 try
                 {
+                    czrpc::base::error_code ec(content.code);
                     if (ec)
                     {
                         func(nullptr, ec);
@@ -76,10 +77,11 @@ public:
 
         void result(const std::function<void(const std::string&, const czrpc::base::error_code&)>& func)
         {
-            task_ = [func, this](const response_content& content, const czrpc::base::error_code& ec)
+            task_ = [func, this](const response_content& content)
             {
                 try
                 {
+                    czrpc::base::error_code ec(content.code);
                     if (ec)
                     {
                         func("", ec);
@@ -165,7 +167,7 @@ private:
     void async_read_content()
     {
         content_.clear();
-        content_.resize(sizeof(unsigned int) + res_head_.message_name_len + res_head_.body_len);
+        content_.resize(sizeof(unsigned int) + sizeof(rpc_error_code) + res_head_.message_name_len + res_head_.body_len);
         boost::asio::async_read(get_socket(), boost::asio::buffer(content_), 
                                 [this](boost::system::error_code ec, std::size_t)
         {
@@ -185,8 +187,9 @@ private:
 
             response_content content;
             memcpy(&content.call_id, &content_[0], sizeof(content.call_id));
-            content.message_name.assign(&content_[sizeof(content.call_id)], res_head_.message_name_len);
-            content.body.assign(&content_[sizeof(content.call_id) + res_head_.message_name_len], res_head_.body_len);
+            memcpy(&content.code, &content_[sizeof(content.call_id)], sizeof(content.code));
+            content.message_name.assign(&content_[sizeof(content.call_id) + sizeof(content.code)], res_head_.message_name_len);
+            content.body.assign(&content_[sizeof(content.call_id) + sizeof(content.code) + res_head_.message_name_len], res_head_.body_len);
             route(content);
         });
     }
@@ -204,7 +207,7 @@ private:
         if (task_map_.find(content.call_id, task_time))
         {
             task_map_.erase(content.call_id);
-            threadpool_.add_task(task_time.task, content, czrpc::base::error_code(res_head_.code));
+            threadpool_.add_task(task_time.task, content);
         }
         else
         {
@@ -230,7 +233,8 @@ private:
             if (std::chrono::duration_cast<std::chrono::milliseconds>(elapsed_time).count() >= static_cast<long>(timeout_milli_))
             {
                 response_content content;
-                threadpool_.add_task(task_time.task, content, czrpc::base::error_code(rpc_error_code::request_timeout));
+                content.code = rpc_error_code::request_timeout;
+                threadpool_.add_task(task_time.task, content);
                 return true;
             }
             return false;

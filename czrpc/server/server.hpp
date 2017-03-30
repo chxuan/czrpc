@@ -252,7 +252,8 @@ private:
     {
         response_content content;
         content.call_id = call_id;
-        conn->async_write(content, code);
+        content.code = code;
+        conn->async_write(content);
     }
    
     void handle_error(const connection_ptr& conn)
