@@ -47,8 +47,8 @@ public:
     class rpc_task
     {
     public:
-        rpc_task(const client_flag& flag, const request_content& content, async_rpc_client* client) 
-            : flag_(flag), content_(content), client_(client) {}
+        rpc_task(const request_content& content, async_rpc_client* client) 
+            : content_(content), client_(client) {}
 
         void result(const std::function<void(const message_ptr&, const czrpc::base::error_code&)>& func)
         {
@@ -71,7 +71,7 @@ public:
                 }
             };
             client_->add_bind_func(content_.call_id, task_);
-            client_->async_call_one_way(flag_, content_);
+            client_->async_call_one_way(content_);
         }
 
         void result(const std::function<void(const std::string&, const czrpc::base::error_code&)>& func)
@@ -95,7 +95,7 @@ public:
                 }
             };
             client_->add_bind_func(content_.call_id, task_);
-            client_->async_call_one_way(flag_, content_);
+            client_->async_call_one_way(content_);
         }
 
     private:
@@ -109,26 +109,17 @@ public:
     {
         serialize_util::singleton::get()->check_message(message);
         sync_connect();
-        request_content content;
-        content.call_id = ++call_id_;
-        content.protocol = func_name;
-        content.message_name = message->GetDescriptor()->full_name();
-        content.body = serialize_util::singleton::get()->serialize(message);
-
         client_flag flag{ serialize_mode::serialize, client_type_ };
-        return rpc_task{ flag, content, this };
+        return rpc_task{ request_content{ ++call_id_, flag, func_name, 
+            message->GetDescriptor()->full_name(), 
+            serialize_util::singleton::get()->serialize(message) }, this };
     }
 
     auto async_call_raw(const std::string& func_name, const std::string& body)
     {
         sync_connect();
-        request_content content;
-        content.call_id = ++call_id_;
-        content.protocol = func_name;
-        content.body = body;
-
         client_flag flag{ serialize_mode::non_serialize, client_type_ };
-        return rpc_task{ flag, content, this };
+        return rpc_task{ request_content{ ++call_id_, flag, func_name, "", body }, this };
     }
 
 private:

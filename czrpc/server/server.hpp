@@ -128,7 +128,7 @@ public:
 private:
     void listen()
     {
-        auto route_func = std::bind(&server::route, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+        auto route_func = std::bind(&server::route, this, std::placeholders::_1, std::placeholders::_2);
         auto handle_error_func = std::bind(&server::handle_error, this, std::placeholders::_1);
         for (auto& ep : endpoint_vec_)
         {
@@ -147,37 +147,38 @@ private:
         }
     }
 
-    void route(const request_content& content, const client_flag& flag, const connection_ptr& conn)
+    void route(const request_content& content, const connection_ptr& conn)
     {
-        threadpool_.add_task(&server::router_thread, this, content, flag, conn);
+        threadpool_.add_task(&server::router_thread, this, content, conn);
     }
 
-    void router_thread(const request_content& content, const client_flag& flag, const connection_ptr& conn)
+    void router_thread(const request_content& content, const connection_ptr& conn)
     {
-        if (flag.type == client_type::rpc_client || flag.type == client_type::async_rpc_client)
+        client_type type = content.flag.type;
+        if (type == client_type::rpc_client || type == client_type::async_rpc_client)
         {
-            rpc_coming(content, flag, conn);
+            rpc_coming(content, conn);
         }
-        else if (flag.type == client_type::pub_client)
+        else if (type == client_type::pub_client)
         {
             push_content ctx { content.protocol, content.message_name, content.body };
-            publisher_coming(flag.mode, ctx);
+            publisher_coming(content.flag.mode, ctx);
         }
-        else if (flag.type == client_type::sub_client)
+        else if (type == client_type::sub_client)
         {
             subscriber_coming(content.protocol, content.body, conn);
         }
     }
 
-    void rpc_coming(const request_content& content, const client_flag& flag, const connection_ptr& conn)
+    void rpc_coming(const request_content& content, const connection_ptr& conn)
     {
         try
         {
-            if (flag.mode == serialize_mode::serialize)
+            if (content.flag.mode == serialize_mode::serialize)
             {
                 rpc_coming_with_serialize(content, conn);
             }
-            else if (flag.mode == serialize_mode::non_serialize)
+            else if (content.flag.mode == serialize_mode::non_serialize)
             {
                 rpc_coming_with_non_serialize(content, conn);
             }

@@ -29,11 +29,8 @@ public:
         serialize_util::singleton::get()->check_message(message);
         try_connect();
         client_flag flag{ serialize_mode::serialize, client_type_ };
-        request_content content;
-        content.protocol = func_name;
-        content.message_name = message->GetDescriptor()->full_name();
-        content.body = serialize_util::singleton::get()->serialize(message);
-        auto rsp = call_two_way(flag, content);
+        auto rsp = call_two_way(request_content{ 0, flag, func_name, message->GetDescriptor()->full_name(), 
+                                serialize_util::singleton::get()->serialize(message) });
         return serialize_util::singleton::get()->deserialize(rsp.message_name, rsp.body);
     }
 
@@ -41,10 +38,7 @@ public:
     {
         try_connect();
         client_flag flag{ serialize_mode::non_serialize, client_type_ };
-        request_content content;
-        content.protocol = func_name;
-        content.body = body;
-        auto rsp = call_two_way(flag, content);
+        auto rsp = call_two_way(request_content{ 0, flag, func_name, "", body });
         return std::move(rsp.body);
     }
 };

@@ -21,7 +21,7 @@ namespace server
 class connection;
 using connection_ptr = std::shared_ptr<connection>;
 using connection_weak_ptr = std::weak_ptr<connection>;
-using router_callback = std::function<void(const request_content&, const client_flag&, const std::shared_ptr<connection>&)>;
+using router_callback = std::function<void(const request_content&, const std::shared_ptr<connection>&)>;
 using handle_error_callback = std::function<void(const connection_ptr&)>;
 
 class connection : public std::enable_shared_from_this<connection>
@@ -195,7 +195,7 @@ private:
     void read_content()
     {
         content_.clear();
-        content_.resize(sizeof(unsigned int) + req_head_.protocol_len + req_head_.message_name_len + req_head_.body_len);
+        content_.resize(sizeof(unsigned int) + sizeof(client_flag) + req_head_.protocol_len + req_head_.message_name_len + req_head_.body_len);
         auto self(this->shared_from_this());
         boost::asio::async_read(socket_, boost::asio::buffer(content_), 
                                 [this, self](boost::system::error_code ec, std::size_t)
@@ -215,11 +215,13 @@ private:
 
             request_content content;
             memcpy(&content.call_id, &content_[0], sizeof(content.call_id));
-            content.protocol.assign(&content_[sizeof(content.call_id)], req_head_.protocol_len);
-            content.message_name.assign(&content_[sizeof(content.call_id) + req_head_.protocol_len], req_head_.message_name_len);
-            content.body.assign(&content_[sizeof(content.call_id) + req_head_.protocol_len + req_head_.message_name_len], 
+            memcpy(&content.flag, &content_[sizeof(content.call_id)], sizeof(content.flag));
+            content.protocol.assign(&content_[sizeof(content.call_id) + sizeof(client_flag)], req_head_.protocol_len);
+            content.message_name.assign(&content_[sizeof(content.call_id) + sizeof(client_flag) + req_head_.protocol_len], req_head_.message_name_len);
+            content.body.assign(&content_[sizeof(content.call_id) + sizeof(client_flag) + req_head_.protocol_len + req_head_.message_name_len], 
                                 req_head_.body_len);
-            route_(content, req_head_.flag, self);
+            type_ = content.flag.type;
+            route_(content, self);
             guard.dismiss();
         });
     }
@@ -301,7 +303,7 @@ private:
 
     void handle_error()
     {
-        if (req_head_.flag.type == client_type::sub_client)
+        if (type_ == client_type::sub_client)
         {
             handle_error_(this->shared_from_this());
         }
@@ -337,6 +339,7 @@ private:
     boost::asio::ip::tcp::socket socket_;
     char req_head_buf_[request_header_len];
     request_header req_head_;
+    client_type type_;
     std::vector<char> content_;
     router_callback route_;
     handle_error_callback handle_error_;

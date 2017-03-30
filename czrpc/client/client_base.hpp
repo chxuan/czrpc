@@ -63,22 +63,22 @@ public:
         stop_ios_thread();
     }
 
-    void call_one_way(const client_flag& flag, const request_content& content)
+    void call_one_way(const request_content& content)
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        write(flag, content);
+        write(content);
     }
 
-    response_content call_two_way(const client_flag& flag, const request_content& content)
+    response_content call_two_way(const request_content& content)
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        write(flag, content);
+        write(content);
         return std::move(read());
     }
 
-    void async_call_one_way(const client_flag& flag, const request_content& content)
+    void async_call_one_way(const request_content& content)
     {
-        async_write(flag, content);
+        async_write(content);
     }
 
     void disconnect()
@@ -128,6 +128,7 @@ private:
         std::string buffer;
         buffer.append(reinterpret_cast<const char*>(&data.header), sizeof(data.header));
         buffer.append(reinterpret_cast<const char*>(&data.content.call_id), sizeof(data.content.call_id));
+        buffer.append(reinterpret_cast<const char*>(&data.content.flag), sizeof(data.content.flag));
         buffer.append(data.content.protocol);
         buffer.append(data.content.message_name);
         buffer.append(data.content.body);
@@ -157,13 +158,12 @@ private:
         }
     }
 
-    void write(const client_flag& flag, const request_content& content)
+    void write(const request_content& content)
     {
         request_header header;
         header.protocol_len = content.protocol.size();
         header.message_name_len = content.message_name.size();
         header.body_len = content.body.size();
-        header.flag = flag;
 
         if (header.protocol_len + header.message_name_len + header.body_len > max_buffer_len)
         {
@@ -174,13 +174,12 @@ private:
         write_impl(buffer);
     }
 
-    void async_write(const client_flag& flag, const request_content& content)
+    void async_write(const request_content& content)
     {
         request_header header;
         header.protocol_len = content.protocol.size();
         header.message_name_len = content.message_name.size();
         header.body_len = content.body.size();
-        header.flag = flag;
 
         if (header.protocol_len + header.message_name_len + header.body_len > max_buffer_len)
         {
