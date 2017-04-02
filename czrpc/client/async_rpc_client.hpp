@@ -113,8 +113,8 @@ public:
         sync_connect();
         client_flag flag{ serialize_mode::serialize, client_type_ };
         return rpc_task{ request_content{ ++call_id_, flag, func_name, 
-            message->GetDescriptor()->full_name(), 
-            serialize_util::singleton::get()->serialize(message) }, this };
+                         message->GetDescriptor()->full_name(), 
+                         serialize_util::singleton::get()->serialize(message) }, this };
     }
 
     auto async_call_raw(const std::string& func_name, const std::string& body)
@@ -185,13 +185,18 @@ private:
                 return;
             }
 
-            response_content content;
-            memcpy(&content.call_id, &content_[0], sizeof(content.call_id));
-            memcpy(&content.code, &content_[sizeof(content.call_id)], sizeof(content.code));
-            content.message_name.assign(&content_[sizeof(content.call_id) + sizeof(content.code)], res_head_.message_name_len);
-            content.body.assign(&content_[sizeof(content.call_id) + sizeof(content.code) + res_head_.message_name_len], res_head_.body_len);
-            route(content);
+            route(make_content());
         });
+    }
+
+    response_content make_content()
+    {
+        response_content content;
+        memcpy(&content.call_id, &content_[0], sizeof(content.call_id));
+        memcpy(&content.code, &content_[sizeof(content.call_id)], sizeof(content.code));
+        content.message_name.assign(&content_[sizeof(content.call_id) + sizeof(content.code)], res_head_.message_name_len);
+        content.body.assign(&content_[sizeof(content.call_id) + sizeof(content.code) + res_head_.message_name_len], res_head_.body_len);
+        return std::move(content);
     }
 
     void add_bind_func(unsigned int call_id, const task_t& task)

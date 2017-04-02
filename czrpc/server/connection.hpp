@@ -213,17 +213,23 @@ private:
                 return;
             }
 
-            request_content content;
-            memcpy(&content.call_id, &content_[0], sizeof(content.call_id));
-            memcpy(&content.flag, &content_[sizeof(content.call_id)], sizeof(content.flag));
-            content.protocol.assign(&content_[sizeof(content.call_id) + sizeof(client_flag)], req_head_.protocol_len);
-            content.message_name.assign(&content_[sizeof(content.call_id) + sizeof(client_flag) + req_head_.protocol_len], req_head_.message_name_len);
-            content.body.assign(&content_[sizeof(content.call_id) + sizeof(client_flag) + req_head_.protocol_len + req_head_.message_name_len], 
-                                req_head_.body_len);
+            auto content = make_content();
             type_ = content.flag.type;
             route_(content, self);
             guard.dismiss();
         });
+    }
+
+    request_content make_content()
+    {
+        request_content content;
+        memcpy(&content.call_id, &content_[0], sizeof(content.call_id));
+        memcpy(&content.flag, &content_[sizeof(content.call_id)], sizeof(content.flag));
+        content.protocol.assign(&content_[sizeof(content.call_id) + sizeof(client_flag)], req_head_.protocol_len);
+        content.message_name.assign(&content_[sizeof(content.call_id) + sizeof(client_flag) + req_head_.protocol_len], req_head_.message_name_len);
+        content.body.assign(&content_[sizeof(content.call_id) + sizeof(client_flag) + req_head_.protocol_len + req_head_.message_name_len], 
+                            req_head_.body_len);
+        return std::move(content);
     }
 
     void set_no_delay()

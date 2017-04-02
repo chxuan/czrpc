@@ -213,14 +213,19 @@ private:
                 return;
             }
 
-            push_content content;
-            memcpy(&content.mode, &content_[0], sizeof(content.mode));
-            content.protocol.assign(&content_[sizeof(content.mode)], push_head_.protocol_len);
-            content.message_name.assign(&content_[sizeof(content.mode) + push_head_.protocol_len], push_head_.message_name_len);
-            content.body.assign(&content_[sizeof(content.mode) + push_head_.protocol_len + push_head_.message_name_len], push_head_.body_len);
-            threadpool_.add_task(&sub_client::router_thread, this, content);
+            threadpool_.add_task(&sub_client::router_thread, this, make_content());
             last_active_time_ = time(nullptr);
         });
+    }
+
+    push_content make_content()
+    {
+        push_content content;
+        memcpy(&content.mode, &content_[0], sizeof(content.mode));
+        content.protocol.assign(&content_[sizeof(content.mode)], push_head_.protocol_len);
+        content.message_name.assign(&content_[sizeof(content.mode) + push_head_.protocol_len], push_head_.message_name_len);
+        content.body.assign(&content_[sizeof(content.mode) + push_head_.protocol_len + push_head_.message_name_len], push_head_.body_len);
+        return std::move(content);
     }
 
     void heartbeats_timer()
