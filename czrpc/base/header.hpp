@@ -9,7 +9,7 @@ namespace base
 constexpr const int max_buffer_len = 20 * 1024 * 1024; // 20MB
 constexpr const int request_header_len = 4 + 4 + 4;
 constexpr const int response_header_len = 4 + 4;
-constexpr const int push_header_len = 4 + 4 + 4 + 4;
+constexpr const int push_header_len = 4 + 4 + 4;
 const std::string subscribe_topic_flag = "1";
 const std::string cancel_subscribe_topic_flag = "0";
 const std::string heartbeats_flag = "00";
@@ -90,11 +90,11 @@ struct push_header
     unsigned int protocol_len;
     unsigned int message_name_len;
     unsigned int body_len;
-    serialize_mode mode;
 };
 
 struct push_content
 {
+    serialize_mode mode;
     std::string protocol;
     std::string message_name;
     std::string body;

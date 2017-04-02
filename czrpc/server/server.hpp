@@ -161,8 +161,7 @@ private:
         }
         else if (type == client_type::pub_client)
         {
-            push_content ctx { content.protocol, content.message_name, content.body };
-            publisher_coming(content.flag.mode, ctx);
+            publisher_coming(push_content{ content.flag.mode, content.protocol, content.message_name, content.body });
         }
         else if (type == client_type::sub_client)
         {
@@ -213,7 +212,7 @@ private:
         }
     }
 
-    void publisher_coming(serialize_mode mode, const push_content& content)
+    void publisher_coming(const push_content& content)
     {
         for (auto& conn : topic_manager::singleton::get()->get_connection_by_topic(content.protocol))
         {
@@ -221,7 +220,7 @@ private:
             {
                 if (!conn.expired())
                 {
-                    conn.lock()->async_write(mode, content);
+                    conn.lock()->async_write(content);
                 }
             }
             catch (std::exception& e)

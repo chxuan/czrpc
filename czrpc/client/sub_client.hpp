@@ -195,7 +195,7 @@ private:
     void async_read_content()
     {
         content_.clear();
-        content_.resize(push_head_.protocol_len + push_head_.message_name_len + push_head_.body_len);
+        content_.resize(sizeof(serialize_mode) + push_head_.protocol_len + push_head_.message_name_len + push_head_.body_len);
         boost::asio::async_read(get_socket(), boost::asio::buffer(content_), 
                                 [this](boost::system::error_code ec, std::size_t)
         {
@@ -214,10 +214,11 @@ private:
             }
 
             push_content content;
-            content.protocol.assign(&content_[0], push_head_.protocol_len);
-            content.message_name.assign(&content_[push_head_.protocol_len], push_head_.message_name_len);
-            content.body.assign(&content_[push_head_.protocol_len + push_head_.message_name_len], push_head_.body_len);
-            threadpool_.add_task(&sub_client::router_thread, this, push_head_.mode, content);
+            memcpy(&content.mode, &content_[0], sizeof(content.mode));
+            content.protocol.assign(&content_[sizeof(content.mode)], push_head_.protocol_len);
+            content.message_name.assign(&content_[sizeof(content.mode) + push_head_.protocol_len], push_head_.message_name_len);
+            content.body.assign(&content_[sizeof(content.mode) + push_head_.protocol_len + push_head_.message_name_len], push_head_.body_len);
+            threadpool_.add_task(&sub_client::router_thread, this, content);
             last_active_time_ = time(nullptr);
         });
     }
@@ -283,15 +284,15 @@ private:
         }
     }
 
-    void router_thread(serialize_mode mode, const push_content& content)
+    void router_thread(const push_content& content)
     {
         bool ok = false;
-        if (mode == serialize_mode::serialize)
+        if (content.mode == serialize_mode::serialize)
         {
             message_ptr req = serialize_util::singleton::get()->deserialize(content.message_name, content.body);
             ok = sub_router::singleton::get()->route(content.protocol, req);
         }
-        else if (mode == serialize_mode::non_serialize)
+        else if (content.mode == serialize_mode::non_serialize)
         {
             ok = sub_router::singleton::get()->route_raw(content.protocol, content.body);
         }
