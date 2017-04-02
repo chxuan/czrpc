@@ -96,8 +96,8 @@ A modern RPC framework based on protobuf
 
 ## 依赖性
 
-* [spdlog][2]
 * boost
+* protobuf
 * c++14
 
 ## DONE
@@ -121,5 +121,4 @@ This software is licensed under the [MIT license][3]. © 2017 chxuan
 
 
   [1]: http://img.shields.io/badge/license-MIT-blue.svg?style=flat-square
-  [2]: https://github.com/gabime/spdlog
-  [3]: https://github.com/chxuan/czrpc/blob/master/LICENSE
+  [2]: https://github.com/chxuan/czrpc/blob/master/LICENSE
