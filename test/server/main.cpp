@@ -52,8 +52,8 @@ int main()
         server.bind_raw("echo", &test::echo, &t);
 
         std::vector<czrpc::base::endpoint> ep;
-        ep.emplace_back(czrpc::base::endpoint{ "127.0.0.1", 50051 });
-        ep.emplace_back(czrpc::base::endpoint{ "127.0.0.1", 50052 });
+        ep.emplace_back(czrpc::base::endpoint{ "0.0.0.0", 50051 });
+        ep.emplace_back(czrpc::base::endpoint{ "0.0.0.0", 50052 });
         server.listen(ep).ios_threads(std::thread::hardware_concurrency()).work_threads(10).run();
     }
     catch (std::exception& e)
