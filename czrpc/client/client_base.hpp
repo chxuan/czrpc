@@ -122,16 +122,16 @@ protected:
     }
 
 private:
-    std::string get_buffer(const request_data& data)
+    std::shared_ptr<std::string> get_buffer(const request_data& data)
     {
-        std::string buffer;
-        buffer.append(reinterpret_cast<const char*>(&data.header), sizeof(data.header));
-        buffer.append(reinterpret_cast<const char*>(&data.content.call_id), sizeof(data.content.call_id));
-        buffer.append(reinterpret_cast<const char*>(&data.content.flag), sizeof(data.content.flag));
-        buffer.append(data.content.protocol);
-        buffer.append(data.content.message_name);
-        buffer.append(data.content.body);
-        return std::move(buffer);
+        auto buffer = std::make_shared<std::string>();
+        buffer->append(reinterpret_cast<const char*>(&data.header), sizeof(data.header));
+        buffer->append(reinterpret_cast<const char*>(&data.content.call_id), sizeof(data.content.call_id));
+        buffer->append(reinterpret_cast<const char*>(&data.content.flag), sizeof(data.content.flag));
+        buffer->append(data.content.protocol);
+        buffer->append(data.content.message_name);
+        buffer->append(data.content.body);
+        return buffer;
     }
 
     void connect()
@@ -169,7 +169,7 @@ private:
             throw std::runtime_error("Send data is too big");
         }
 
-        std::string buffer = get_buffer(request_data{ header, content });
+        auto buffer = get_buffer(request_data{ header, content });
         write_impl(buffer);
     }
 
@@ -185,14 +185,14 @@ private:
             throw std::runtime_error("Send data is too big");
         }
 
-        std::string buffer = get_buffer(request_data{ header, content });
+        auto buffer = get_buffer(request_data{ header, content });
         async_write_impl(buffer);
     }
 
-    void write_impl(const std::string& buffer)
+    void write_impl(const std::shared_ptr<std::string>& buffer)
     {
         boost::system::error_code ec;
-        boost::asio::write(socket_, boost::asio::buffer(buffer), ec);
+        boost::asio::write(socket_, boost::asio::buffer(*buffer), ec);
         if (ec)
         {
             is_connected_ = false;
@@ -200,7 +200,7 @@ private:
         }
     }
 
-    void async_write_impl(const std::string& buffer)
+    void async_write_impl(const std::shared_ptr<std::string>& buffer)
     {
         ios_.post([this, buffer]
         {
@@ -215,7 +215,7 @@ private:
 
     void async_write_impl()
     {
-        boost::asio::async_write(socket_, boost::asio::buffer(send_queue_.front()), 
+        boost::asio::async_write(socket_, boost::asio::buffer(*send_queue_.front()), 
                                  [this](boost::system::error_code ec, std::size_t)
         {
             if (!ec)
@@ -367,7 +367,7 @@ private:
     std::mutex mutex_;
     std::mutex conn_mutex_;
 
-    threadsafe_list<std::string> send_queue_;
+    threadsafe_list<std::shared_ptr<std::string>> send_queue_;
     std::function<void()> connect_success_notify_ = nullptr;
 };
 

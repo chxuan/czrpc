@@ -67,7 +67,7 @@ public:
         }
 
         response_header header{ message_name_len, body_len };
-        std::string buffer = get_buffer(response_data{ header, content });
+        auto buffer = get_buffer(response_data{ header, content });
         write_impl(buffer);
     }
 
@@ -83,7 +83,7 @@ public:
         }
 
         push_header header{ protocol_len, message_name_len, body_len };
-        std::string buffer = get_buffer(push_data{ header, content });
+        auto buffer = get_buffer(push_data{ header, content });
         write_impl(buffer);
     }
 
@@ -98,7 +98,7 @@ public:
         }
 
         response_header header{ message_name_len, body_len };
-        std::string buffer = get_buffer(response_data{ header, content });
+        auto buffer = get_buffer(response_data{ header, content });
         async_write_impl(buffer);
     }
 
@@ -114,7 +114,7 @@ public:
         }
 
         push_header header{ protocol_len, message_name_len, body_len };
-        std::string buffer = get_buffer(push_data{ header, content });
+        auto buffer = get_buffer(push_data{ header, content });
         async_write_impl(buffer);
     }
 
@@ -238,32 +238,32 @@ private:
         socket_.set_option(option, ec);
     }
 
-    std::string get_buffer(const response_data& data)
+    std::shared_ptr<std::string> get_buffer(const response_data& data)
     {
-        std::string buffer;
-        buffer.append(reinterpret_cast<const char*>(&data.header), sizeof(data.header));
-        buffer.append(reinterpret_cast<const char*>(&data.content.call_id), sizeof(data.content.call_id));
-        buffer.append(reinterpret_cast<const char*>(&data.content.code), sizeof(data.content.code));
-        buffer.append(data.content.message_name);
-        buffer.append(data.content.body);
-        return std::move(buffer);
+        auto buffer = std::make_shared<std::string>();
+        buffer->append(reinterpret_cast<const char*>(&data.header), sizeof(data.header));
+        buffer->append(reinterpret_cast<const char*>(&data.content.call_id), sizeof(data.content.call_id));
+        buffer->append(reinterpret_cast<const char*>(&data.content.code), sizeof(data.content.code));
+        buffer->append(data.content.message_name);
+        buffer->append(data.content.body);
+        return buffer;
     }
 
-    std::string get_buffer(const push_data& data)
+    std::shared_ptr<std::string> get_buffer(const push_data& data)
     {
-        std::string buffer;
-        buffer.append(reinterpret_cast<const char*>(&data.header), sizeof(data.header));
-        buffer.append(reinterpret_cast<const char*>(&data.content.mode), sizeof(data.content.mode));
-        buffer.append(data.content.protocol);
-        buffer.append(data.content.message_name);
-        buffer.append(data.content.body);
-        return std::move(buffer);
+        auto buffer = std::make_shared<std::string>();
+        buffer->append(reinterpret_cast<const char*>(&data.header), sizeof(data.header));
+        buffer->append(reinterpret_cast<const char*>(&data.content.mode), sizeof(data.content.mode));
+        buffer->append(data.content.protocol);
+        buffer->append(data.content.message_name);
+        buffer->append(data.content.body);
+        return buffer;
     }
 
-    void write_impl(const std::string& buffer)
+    void write_impl(const std::shared_ptr<std::string>& buffer)
     {
         boost::system::error_code ec;
-        boost::asio::write(socket_, boost::asio::buffer(buffer), ec);
+        boost::asio::write(socket_, boost::asio::buffer(*buffer), ec);
         if (ec)
         {
             handle_error();
@@ -271,7 +271,7 @@ private:
         }
     }
 
-    void async_write_impl(const std::string& buffer)
+    void async_write_impl(const std::shared_ptr<std::string>& buffer)
     {
         auto self(this->shared_from_this());
         ios_.post([this, self, buffer]
@@ -288,7 +288,7 @@ private:
     void async_write_impl()
     {
         auto self(this->shared_from_this());
-        boost::asio::async_write(socket_, boost::asio::buffer(send_queue_.front()), 
+        boost::asio::async_write(socket_, boost::asio::buffer(*send_queue_.front()), 
                                  [this, self](boost::system::error_code ec, std::size_t)
         {
             if (!ec)
@@ -350,7 +350,7 @@ private:
     std::vector<char> content_;
     router_callback route_;
     handle_error_callback handle_error_;
-    threadsafe_list<std::string> send_queue_;
+    threadsafe_list<std::shared_ptr<std::string>> send_queue_;
     std::string session_id_;
 
     std::function<void(const std::string&)> client_connect_notify_ = nullptr;
