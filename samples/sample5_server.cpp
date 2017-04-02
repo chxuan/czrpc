@@ -5,7 +5,6 @@
 #include "czrpc/server/server.hpp"
 #include "common.pb.h"
 
-using namespace czrpc::base;
 using message_ptr = std::shared_ptr<google::protobuf::Message>;
 
 class test
@@ -37,7 +36,7 @@ int main()
     }
     catch (std::exception& e)
     {
-        log_warn(e.what());
+        std::cout << e.what() << std::endl;
         return 0;
     }
 

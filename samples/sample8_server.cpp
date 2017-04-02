@@ -4,8 +4,6 @@
 #include <iostream>
 #include "czrpc/server/server.hpp"
 
-using namespace czrpc::base;
-
 int main()
 {
     // 1.创建rpc服务器对象
@@ -18,7 +16,7 @@ int main()
     }
     catch (std::exception& e)
     {
-        log_warn(e.what());
+        std::cout << e.what() << std::endl;
         return 0;
     }
 

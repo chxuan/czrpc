@@ -10,7 +10,6 @@
 #include "base/header.hpp"
 #include "base/atimer.hpp"
 #include "base/scope_guard.hpp"
-#include "base/logger.hpp"
 #include "base/serialize_util.hpp"
 #include "base/table/threadsafe_list.hpp"
 
@@ -231,7 +230,7 @@ private:
             {
                 is_connected_ = false;
                 send_queue_.clear();
-                log_warn(ec.message());
+                std::cout << ec.message() << std::endl;
             }
         });
     }

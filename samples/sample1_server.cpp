@@ -5,8 +5,6 @@
 #include "czrpc/server/server.hpp"
 #include "common.pb.h"
 
-using namespace czrpc::base;
-
 void echo(const czrpc::message::request_ptr& req, const czrpc::message::response_ptr& rsp)
 {
     req->message()->PrintDebugString();
@@ -28,7 +26,7 @@ int main()
     }
     catch (std::exception& e)
     {
-        log_warn(e.what());
+        std::cout << e.what() << std::endl;
         return 0;
     }
 

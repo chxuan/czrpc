@@ -3,8 +3,6 @@
 #include "czrpc/client/client.hpp"
 #include "proto_message.pb.h"
 
-using namespace czrpc::base;
-
 czrpc::client::pub_client client;
 
 void test_func()
@@ -23,7 +21,7 @@ void test_func()
         }
         catch (std::exception& e)
         {
-            log_warn(e.what());
+            std::cout << e.what() << std::endl;
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(20));
     }
@@ -37,7 +35,7 @@ int main()
     }
     catch (std::exception& e)
     {
-        log_warn(e.what());
+        std::cout << e.what() << std::endl;
         return 0;
     }
 

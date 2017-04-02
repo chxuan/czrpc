@@ -2,7 +2,6 @@
 #include "czrpc/server/server.hpp"
 #include "proto_message.pb.h"
 
-using namespace czrpc::base;
 using message_ptr = std::shared_ptr<google::protobuf::Message>;
 
 void request_person_info(const czrpc::message::request_ptr& req, const czrpc::message::response_ptr& rsp)
@@ -33,12 +32,12 @@ public:
 
 void client_connect_notify(const std::string& session_id)
 {
-    log_info("connect session id: {}", session_id);
+    std::cout << "connect session id: " << session_id << std::endl;
 }
 
 void client_disconnect_notify(const std::string& session_id)
 {
-    log_info("disconnect session id: {}", session_id);
+    std::cout << "disconnect session id: " << session_id << std::endl;
 }
 
 int main()
@@ -59,7 +58,7 @@ int main()
     }
     catch (std::exception& e)
     {
-        log_warn(e.what());
+        std::cout << e.what() << std::endl;
         return 0;
     }
 

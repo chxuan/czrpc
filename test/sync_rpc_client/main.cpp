@@ -2,8 +2,6 @@
 #include "czrpc/client/client.hpp"
 #include "proto_message.pb.h"
 
-using namespace czrpc::base;
-
 #define IS_SAME(message, other_message) (message->GetDescriptor()->full_name() == other_message::descriptor()->full_name())
 
 czrpc::client::rpc_client client;
@@ -34,7 +32,7 @@ void test_func()
         }
         catch (std::exception& e)
         {
-            log_warn(e.what());
+            std::cout << e.what() << std::endl;
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(20));
     }
@@ -42,7 +40,7 @@ void test_func()
 
 void connect_success_notify()
 {
-    log_info("connect success...");
+    std::cout << "connect success..." << std::endl;
 }
 
 int main()
@@ -54,7 +52,7 @@ int main()
     }
     catch (std::exception& e)
     {
-        log_warn(e.what());
+        std::cout << e.what() << std::endl;
         return 0;
     }
 

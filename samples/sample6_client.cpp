@@ -3,7 +3,6 @@
 ************************************************/
 #include <iostream>
 #include "czrpc/client/client.hpp"
-using namespace czrpc::base;
 
 int main()
 {   
@@ -20,7 +19,7 @@ int main()
     }
     catch (std::exception& e)
     {
-        log_warn(e.what());
+        std::cout << e.what() << std::endl;
         return 0;
     }
 

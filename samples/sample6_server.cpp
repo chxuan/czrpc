@@ -3,7 +3,6 @@
 ************************************************/
 #include <iostream>
 #include "czrpc/server/server.hpp"
-using namespace czrpc::base;
 
 void echo(const czrpc::message::request_ptr& req, const czrpc::message::response_ptr& rsp)
 {
@@ -26,7 +25,7 @@ int main()
     }
     catch (std::exception& e)
     {
-        log_warn(e.what());
+        std::cout << e.what() << std::endl;
         return 0;
     }
 

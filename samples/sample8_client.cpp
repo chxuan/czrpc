@@ -6,7 +6,6 @@
 #include "czrpc/client/client.hpp"
 #include "common.pb.h"
 
-using namespace czrpc::base;
 using message_ptr = std::shared_ptr<google::protobuf::Message>;
 
 czrpc::client::pub_client client;
@@ -30,7 +29,7 @@ void pub_func()
         }
         catch (std::exception& e)
         {
-            log_warn(e.what());
+            std::cout << e.what() << std::endl;
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
@@ -54,7 +53,7 @@ int main()
     }
     catch (std::exception& e)
     {
-        log_warn(e.what());
+        std::cout << e.what() << std::endl;
         return 0;
     }
 

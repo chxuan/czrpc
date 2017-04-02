@@ -160,13 +160,13 @@ private:
         {
             if (!get_socket().is_open())
             {
-                log_warn("Socket is not open");
+                std::cout << "Socket is not open" << std::endl;
                 return;
             }
 
             if (ec)
             {
-                log_warn(ec.message());
+                std::cout << ec.message() << std::endl;
                 return;
             }
 
@@ -186,7 +186,7 @@ private:
         memcpy(&push_head_, push_head_buf_, sizeof(push_head_buf_));
         if (push_head_.protocol_len + push_head_.message_name_len + push_head_.body_len > max_buffer_len)
         {
-            log_warn("Content len is too big");
+            std::cout << "Content len is too big" << std::endl;
             return false;
         }
         return true;
@@ -203,13 +203,13 @@ private:
 
             if (!get_socket().is_open())
             {
-                log_warn("Socket is not open");
+                std::cout << "Socket is not open" << std::endl;
                 return;
             }
 
             if (ec)
             {
-                log_warn(ec.message());
+                std::cout << ec.message() << std::endl;
                 return;
             }
 
@@ -240,7 +240,7 @@ private:
             }
             catch (std::exception& e)
             {
-                log_warn(e.what());
+                std::cout << e.what() << std::endl;
             }
         }
     }
@@ -257,7 +257,7 @@ private:
         }
         catch (std::exception& e)
         {
-            log_warn(e.what());
+            std::cout << e.what() << std::endl;
         }
     }
 
@@ -303,7 +303,7 @@ private:
         }
         if (!ok)
         {
-            log_warn("Route failed");
+            std::cout << "Route failed" << std::endl;
         }
     }
 

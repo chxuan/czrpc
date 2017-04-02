@@ -68,7 +68,7 @@ public:
                 }
                 catch (std::exception& e)
                 {
-                    log_warn(e.what());
+                    std::cout << e.what() << std::endl;
                 }
             };
             client_->add_bind_func(content_.call_id, task_);
@@ -93,7 +93,7 @@ public:
                 }
                 catch (std::exception& e)
                 {
-                    log_warn(e.what());
+                    std::cout << e.what() << std::endl;
                 }
             };
             client_->add_bind_func(content_.call_id, task_);
@@ -132,13 +132,13 @@ private:
         {
             if (!get_socket().is_open())
             {
-                log_warn("Socket is not open");
+                std::cout << "Socket is not open" << std::endl;
                 return;
             }
 
             if (ec)
             {
-                log_warn(ec.message());
+                std::cout << ec.message() << std::endl;
                 return;
             }
 
@@ -158,7 +158,7 @@ private:
         memcpy(&res_head_, res_head_buf_, sizeof(res_head_buf_));
         if (res_head_.message_name_len + res_head_.body_len > max_buffer_len)
         {
-            log_warn("Content len is too big");
+            std::cout << "Content len is too big" << std::endl;
             return false;
         }
         return true;
@@ -175,13 +175,13 @@ private:
 
             if (!get_socket().is_open())
             {
-                log_warn("Socket is not open");
+                std::cout << "Socket is not open" << std::endl;
                 return;
             }
 
             if (ec)
             {
-                log_warn(ec.message());
+                std::cout << ec.message() << std::endl;
                 return;
             }
 
@@ -216,7 +216,7 @@ private:
         }
         else
         {
-            log_info("Route failed, call id: {}, message name: {}", content.call_id, content.message_name);
+            std::cout << "Route failed, call id: " << content.call_id << ", message name: " << content.message_name << std::endl;
         }
     }
 

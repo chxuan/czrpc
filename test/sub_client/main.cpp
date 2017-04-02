@@ -2,8 +2,6 @@
 #include "czrpc/client/client.hpp"
 #include "proto_message.pb.h"
 
-using namespace czrpc::base;
-
 void auto_weather(const std::shared_ptr<google::protobuf::Message>& in_message)
 {
     auto message = std::dynamic_pointer_cast<auto_weather_message>(in_message);
@@ -27,7 +25,7 @@ int main()
     }
     catch (std::exception& e)
     {
-        log_warn(e.what());
+        std::cout << e.what() << std::endl;
         return 0;
     }
 
