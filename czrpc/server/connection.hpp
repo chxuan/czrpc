@@ -301,9 +301,7 @@ private:
             }
             else
             {
-                std::cout << ec.message() << std::endl;
                 send_queue_.clear();
-                handle_error();
             }
         });
     }
