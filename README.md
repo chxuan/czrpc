@@ -21,9 +21,9 @@ A modern RPC framework based on protobuf
 * **Simple server**
 
     ```cpp
+    #include <iostream>
     #include "czrpc/server/server.hpp"
     #include "common.pb.h"
-    using namespace czrpc::base;
     
     void echo(const czrpc::message::request_ptr& req, const czrpc::message::response_ptr& rsp)
     {
@@ -45,7 +45,7 @@ A modern RPC framework based on protobuf
         }
         catch (std::exception& e)
         {
-            log_warn(e.what());
+            std::cout << e.what() << std::endl;
             return 0;
         }
     
@@ -59,7 +59,6 @@ A modern RPC framework based on protobuf
     #include <iostream>
     #include "czrpc/client/client.hpp"
     #include "common.pb.h"
-    using namespace czrpc::base;
     
     int main()
     {   
@@ -79,7 +78,7 @@ A modern RPC framework based on protobuf
         }
         catch (std::exception& e)
         {
-            log_warn(e.what());
+            std::cout << e.what() << std::endl;
             return 0;
         }
     
@@ -107,7 +106,6 @@ A modern RPC framework based on protobuf
 * 同步调用。
 * 异步调用。
 * worker线程池处理任务。
-* 日志记录。
 * 客户端超时处理。
 * 支持原始数据发送。
 * 支持发布/订阅模式。
