@@ -1,11 +1,13 @@
+syntax = "proto3";
+
 message echo_message
 {
-    optional string echo_str = 1;
-    optional int32 echo_num = 2;
+    string echo_str = 1;
+    int32 echo_num = 2;
 }
 
 message news
 {
-    optional string str = 1;
+    string str = 1;
 }
 
