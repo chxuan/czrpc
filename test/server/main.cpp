@@ -2,8 +2,6 @@
 #include "czrpc/server/server.hpp"
 #include "proto_message.pb.h"
 
-using message_ptr = std::shared_ptr<google::protobuf::Message>;
-
 void request_person_info(const czrpc::message::request_ptr& req, const czrpc::message::response_ptr& rsp)
 {
     std::cout << "session id: " << req->session_id() << std::endl;

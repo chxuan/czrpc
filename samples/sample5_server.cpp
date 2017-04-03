@@ -5,8 +5,6 @@
 #include "czrpc/server/server.hpp"
 #include "common.pb.h"
 
-using message_ptr = std::shared_ptr<google::protobuf::Message>;
-
 class test
 {
 public:

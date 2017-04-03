@@ -3,7 +3,6 @@
 #include "proto_message.pb.h"
 
 #define IS_SAME(message, other_message) (message->GetDescriptor()->full_name() == other_message::descriptor()->full_name())
-using message_ptr = std::shared_ptr<google::protobuf::Message>;
 
 czrpc::client::async_rpc_client client;
 

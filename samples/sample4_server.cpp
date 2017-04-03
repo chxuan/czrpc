@@ -14,12 +14,12 @@ void echo(const czrpc::message::request_ptr& req, const czrpc::message::response
 
 void client_connect_notify(const std::string& session_id)
 {
-    log_info("connect session id: {}", session_id);
+    std::cout << "connect session id: " << session_id  << std::endl;
 }
 
 void client_disconnect_notify(const std::string& session_id)
 {
-    log_info("disconnect session id: {}", session_id);
+    std::cout << "disconnect session id: " << session_id  << std::endl;
 }
 
 int main()

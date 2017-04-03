@@ -6,8 +6,6 @@
 #include "czrpc/client/client.hpp"
 #include "common.pb.h"
 
-using message_ptr = std::shared_ptr<google::protobuf::Message>;
-
 czrpc::client::pub_client client;
 
 void pub_func()
@@ -19,13 +17,8 @@ void pub_func()
             auto message = std::make_shared<news>();
             message->set_str("Good news");
 
-            // 同步发布
-            /* client.publish("news", message); */
-            /* client.publish_raw("song", "My heart will go on"); */
-
-            // 异步发布
-            client.async_publish("news", message);
-            client.async_publish_raw("song", "My heart will go on");
+            client.publish("news", message);
+            client.publish_raw("song", "My heart will go on");
         }
         catch (std::exception& e)
         {
@@ -48,8 +41,8 @@ int main()
     {
         client.connect({ "127.0.0.1", 50051 }).timeout(3000).run();
         client2.connect({ "127.0.0.1", 50051 }).timeout(3000).run();
-        client2.async_subscribe("news", &auto_news);
-        client2.async_subscribe_raw("song", [](const std::string& str){ std::cout << str << std::endl; });
+        client2.subscribe("news", &auto_news);
+        client2.subscribe_raw("song", [](const std::string& str){ std::cout << str << std::endl; });
     }
     catch (std::exception& e)
     {
