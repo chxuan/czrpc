@@ -14,10 +14,8 @@ void test_func()
             auto message = std::make_shared<auto_weather_message>();
             message->set_city_name("ChengDu");
             message->set_weather("Good");
-            /* client.publish("weather", message); */
-            /* client.publish_raw("song", "My heart will go on"); */
-            client.async_publish("weather", message);
-            client.async_publish_raw("song", "My heart will go on");
+            client.publish("weather", message);
+            client.publish_raw("song", "My heart will go on");
         }
         catch (std::exception& e)
         {

@@ -1,6 +1,8 @@
 #pragma once
 
 #include <vector>
+#include <thread>
+#include <memory>
 #include <atomic>
 #include <functional>
 #include <boost/timer.hpp>
@@ -14,17 +16,36 @@ template<typename Duration = boost::posix_time::milliseconds>
 class atimer
 {
 public:
-    atimer() = default;
-    atimer(boost::asio::io_service& ios) : timer_(ios), is_single_shot_(false) {}
+    atimer() : work_(ios_), timer_(ios_), is_single_shot_(false) {}
     ~atimer()
     {
-        stop();
+        destroy();
     }
 
     void start(std::size_t duration)
     {
-        timer_.expires_from_now(Duration(duration));
-        timer_.async_wait([this, duration](const boost::system::error_code& ec)
+        if (ios_.stopped() || duration == 0)
+        {
+            return;
+        }
+
+        duration_ = duration;
+        if (thread_ == nullptr)
+        {
+            thread_ = std::make_unique<std::thread>([this]{ ios_.run(); });
+        }
+        start();
+    }
+
+    void start()
+    {
+        if (duration_ == 0)
+        {
+            return;
+        }
+
+        timer_.expires_from_now(Duration(duration_));
+        timer_.async_wait([this](const boost::system::error_code& ec)
         {
             if (ec)
             {
@@ -38,7 +59,7 @@ public:
 
             if (!is_single_shot_)
             {
-                start(duration);
+                start();
             }
         });
     }
@@ -46,6 +67,19 @@ public:
     void stop()
     {
         timer_.cancel();
+    }
+
+    void destroy()
+    {
+        stop();
+        ios_.stop();
+        if (thread_ != nullptr)
+        {
+            if (thread_->joinable())
+            {
+                thread_->join();
+            }
+        }
     }
 
     void bind(const std::function<void()>& func)
@@ -59,9 +93,13 @@ public:
     }
 
 private:
+    boost::asio::io_service ios_;
+    boost::asio::io_service::work work_;
     boost::asio::deadline_timer timer_;
+    std::unique_ptr<std::thread> thread_ = nullptr;
     std::vector<std::function<void()>> func_vec_;
     std::atomic<bool> is_single_shot_;
+    std::size_t duration_ = 0;
 };
 
 }

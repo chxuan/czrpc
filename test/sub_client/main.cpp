@@ -19,8 +19,8 @@ int main()
     {
         czrpc::client::sub_client client;
         client.connect({ "127.0.0.1", 50051 }).timeout(3000).run();
-        client.async_subscribe("weather", &auto_weather);
-        client.async_subscribe_raw("song", [](const std::string& str){ std::cout << str << std::endl; });
+        client.subscribe("weather", &auto_weather);
+        client.subscribe_raw("song", [](const std::string& str){ std::cout << str << std::endl; });
         std::cin.get();
     }
     catch (std::exception& e)

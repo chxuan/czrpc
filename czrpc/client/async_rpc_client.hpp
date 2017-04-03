@@ -11,7 +11,7 @@ class async_rpc_client : public client_base
 public:
     async_rpc_client(const async_rpc_client&) = delete;
     async_rpc_client& operator=(const async_rpc_client&) = delete;
-    async_rpc_client() : timer_work_(timer_ios_), timer_(timer_ios_), call_id_(0)
+    async_rpc_client() : call_id_(0)
     {
         client_type_ = client_type::async_rpc_client;
     }
@@ -27,12 +27,12 @@ public:
         threadpool_.init_thread_num(thread_num);
         client_base::run();
         sync_connect();
-        start_timer_thread();
+        start_timer();
     }
 
     virtual void stop() override final
     {
-        stop_timer_thread();
+        timer_.destroy();
         client_base::stop();
         threadpool_.stop();
     }
@@ -240,36 +240,16 @@ private:
         });
     }
 
-    void start_timer_thread()
+    void start_timer()
     {
-        if (timeout_milli_ != 0)
-        {
-            timer_thread_ = std::make_unique<std::thread>([this]{ timer_ios_.run(); });
-            timer_.bind([this]{ check_request_timeout(); });
-            timer_.start(check_request_timeout_milli);
-        }
-    }
-
-    void stop_timer_thread()
-    {
-        timer_ios_.stop();
-        if (timer_thread_ != nullptr)
-        {
-            if (timer_thread_->joinable())
-            {
-                timer_thread_->join();
-            }
-        }
+        timer_.bind([this]{ check_request_timeout(); });
+        timer_.start(check_request_timeout_milli);
     }
 
 private:
     char res_head_buf_[response_header_len];
     response_header res_head_;
     std::vector<char> content_;
-
-    boost::asio::io_service timer_ios_;
-    boost::asio::io_service::work timer_work_;
-    std::unique_ptr<std::thread> timer_thread_;
     atimer<> timer_;
 
     struct task_with_timepoint

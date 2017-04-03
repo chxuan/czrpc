@@ -13,7 +13,7 @@ class sub_client : public client_base
 public:
     sub_client(const sub_client&) = delete;
     sub_client& operator=(const sub_client&) = delete;
-    sub_client() : heartbeats_work_(heartbeats_ios_), heartbeats_timer_(heartbeats_ios_)
+    sub_client() 
     {
         client_type_ = client_type::sub_client;
     }
@@ -29,12 +29,12 @@ public:
         threadpool_.init_thread_num(thread_num);
         client_base::run();
         sync_connect();
-        start_heartbeats_thread();
+        start_timer();
     }
 
     virtual void stop() override final
     {
-        stop_heartbeats_thread();
+        timer_.destroy();
         client_base::stop();
     }
 
@@ -209,23 +209,10 @@ private:
         }
     }
 
-    void start_heartbeats_thread()
+    void start_timer()
     {
-        heatbeats_thread_ = std::make_unique<std::thread>([this]{ heartbeats_ios_.run(); });
-        heartbeats_timer_.bind([this]{ heartbeats_timer(); });
-        heartbeats_timer_.start(heartbeats_milli);
-    }
-
-    void stop_heartbeats_thread()
-    {
-        heartbeats_ios_.stop();
-        if (heatbeats_thread_ != nullptr)
-        {
-            if (heatbeats_thread_->joinable())
-            {
-                heatbeats_thread_->join();
-            }
-        }
+        timer_.bind([this]{ heartbeats_timer(); });
+        timer_.start(heartbeats_milli);
     }
 
     void sync_connect()
@@ -260,10 +247,7 @@ private:
     push_header push_head_;
     std::vector<char> content_;
 
-    boost::asio::io_service heartbeats_ios_;
-    boost::asio::io_service::work heartbeats_work_;
-    std::unique_ptr<std::thread> heatbeats_thread_;
-    atimer<> heartbeats_timer_;
+    atimer<> timer_;
     thread_pool threadpool_;
     time_t last_active_time_ = 0;
 };
