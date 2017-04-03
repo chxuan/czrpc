@@ -137,6 +137,16 @@ protected:
         return false;
     }
 
+    response_content make_response_content()
+    {
+        response_content content;
+        memcpy(&content.call_id, &rsp_content_[0], sizeof(content.call_id));
+        memcpy(&content.code, &rsp_content_[sizeof(content.call_id)], sizeof(content.code));
+        content.message_name.assign(&rsp_content_[sizeof(content.call_id) + sizeof(content.code)], rsp_head_.message_name_len);
+        content.body.assign(&rsp_content_[sizeof(content.call_id) + sizeof(content.code) + rsp_head_.message_name_len], rsp_head_.body_len);
+        return std::move(content);
+    }
+
 private:
     std::shared_ptr<std::string> get_buffer(const request_data& data)
     {
@@ -222,7 +232,7 @@ private:
     void read_head()
     {
         boost::system::error_code ec;
-        boost::asio::read(socket_, boost::asio::buffer(res_head_buf_), ec);
+        boost::asio::read(socket_, boost::asio::buffer(rsp_head_buf_), ec);
         if (ec)
         {
             is_connected_ = false;
@@ -232,8 +242,8 @@ private:
 
     void check_head()
     {
-        memcpy(&res_head_, res_head_buf_, sizeof(res_head_buf_));
-        if (res_head_.message_name_len + res_head_.body_len > max_buffer_len)
+        memcpy(&rsp_head_, rsp_head_buf_, sizeof(rsp_head_buf_));
+        if (rsp_head_.message_name_len + rsp_head_.body_len > max_buffer_len)
         {
             throw std::runtime_error("Content len is too big");
         }
@@ -241,33 +251,19 @@ private:
 
     response_content read_content()
     {
-        content_.clear();
-        content_.resize(sizeof(unsigned int) + sizeof(rpc_error_code) + res_head_.message_name_len + res_head_.body_len);
+        rsp_content_.clear();
+        rsp_content_.resize(sizeof(unsigned int) + sizeof(rpc_error_code) + rsp_head_.message_name_len + rsp_head_.body_len);
         boost::system::error_code ec;
-        boost::asio::read(socket_, boost::asio::buffer(content_), ec); 
+        boost::asio::read(socket_, boost::asio::buffer(rsp_content_), ec); 
         if (ec)
         {
             is_connected_ = false;
             throw std::runtime_error(ec.message());
         }
 
-        return std::move(make_content());
+        return std::move(make_response_content());
     }
 
-    response_content make_content()
-    {
-        response_content content;
-        memcpy(&content.call_id, &content_[0], sizeof(content.call_id));
-        memcpy(&content.code, &content_[sizeof(content.call_id)], sizeof(content.code));
-        if (content.code != rpc_error_code::ok)
-        {
-            throw std::runtime_error(get_rpc_error_string(content.code));
-        }
-
-        content.message_name.assign(&content_[sizeof(content.call_id) + sizeof(content.code)], res_head_.message_name_len);
-        content.body.assign(&content_[sizeof(content.call_id) + sizeof(content.code) + res_head_.message_name_len], res_head_.body_len);
-        return std::move(content);
-    }
 
     void start_ios_thread()
     {
@@ -289,6 +285,9 @@ private:
 protected:
     client_type client_type_;
     std::size_t timeout_milli_ = 0;
+    char rsp_head_buf_[response_header_len];
+    response_header rsp_head_;
+    std::vector<char> rsp_content_;
 
 private:
     boost::asio::io_service ios_;
@@ -296,9 +295,6 @@ private:
     boost::asio::ip::tcp::socket socket_;
     boost::asio::ip::tcp::resolver::iterator endpoint_iter_;
     std::unique_ptr<std::thread> thread_;
-    char res_head_buf_[response_header_len];
-    response_header res_head_;
-    std::vector<char> content_;
 
     std::atomic<bool> is_connected_ ;
     std::mutex conn_mutex_;

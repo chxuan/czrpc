@@ -41,6 +41,7 @@ public:
         client_flag flag{ serialize_mode::serialize, client_type_ };
         auto rsp = write_and_read(request_content{ 0, flag, func_name, message->GetDescriptor()->full_name(), 
                                   serialize_util::singleton::get()->serialize(message) });
+        check_error_code(rsp.code);
         return serialize_util::singleton::get()->deserialize(rsp.message_name, rsp.body);
     }
 
@@ -49,6 +50,7 @@ public:
         try_connect();
         client_flag flag{ serialize_mode::non_serialize, client_type_ };
         auto rsp = write_and_read(request_content{ 0, flag, func_name, "", body });
+        check_error_code(rsp.code);
         return std::move(rsp.body);
     }
 
@@ -66,6 +68,14 @@ private:
     {
         timer_.bind([this]{ disconnect(); });
         timer_.set_single_shot(true);
+    }
+
+    void check_error_code(rpc_error_code code)
+    {
+        if (code != rpc_error_code::ok)
+        {
+            throw std::runtime_error(get_rpc_error_string(code));
+        }
     }
 
 private:

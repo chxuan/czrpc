@@ -161,12 +161,12 @@ private:
                 return;
             }
 
-            threadpool_.add_task(&sub_client::router_thread, this, make_content());
+            threadpool_.add_task(&sub_client::router_thread, this, make_push_content());
             last_active_time_ = time(nullptr);
         });
     }
 
-    push_content make_content()
+    push_content make_push_content()
     {
         push_content content;
         memcpy(&content.mode, &content_[0], sizeof(content.mode));

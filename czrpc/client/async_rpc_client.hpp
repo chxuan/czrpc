@@ -121,7 +121,7 @@ public:
 private:
     void async_read_head()
     {
-        boost::asio::async_read(get_socket(), boost::asio::buffer(res_head_buf_), 
+        boost::asio::async_read(get_socket(), boost::asio::buffer(rsp_head_buf_), 
                                 [this](boost::system::error_code ec, std::size_t)
         {
             if (!get_socket().is_open())
@@ -149,8 +149,8 @@ private:
 
     bool async_check_head()
     {
-        memcpy(&res_head_, res_head_buf_, sizeof(res_head_buf_));
-        if (res_head_.message_name_len + res_head_.body_len > max_buffer_len)
+        memcpy(&rsp_head_, rsp_head_buf_, sizeof(rsp_head_buf_));
+        if (rsp_head_.message_name_len + rsp_head_.body_len > max_buffer_len)
         {
             std::cout << "Content len is too big" << std::endl;
             return false;
@@ -160,9 +160,9 @@ private:
 
     void async_read_content()
     {
-        content_.clear();
-        content_.resize(sizeof(unsigned int) + sizeof(rpc_error_code) + res_head_.message_name_len + res_head_.body_len);
-        boost::asio::async_read(get_socket(), boost::asio::buffer(content_), 
+        rsp_content_.clear();
+        rsp_content_.resize(sizeof(unsigned int) + sizeof(rpc_error_code) + rsp_head_.message_name_len + rsp_head_.body_len);
+        boost::asio::async_read(get_socket(), boost::asio::buffer(rsp_content_), 
                                 [this](boost::system::error_code ec, std::size_t)
         {
             async_read_head();
@@ -179,18 +179,8 @@ private:
                 return;
             }
 
-            route(make_content());
+            route(make_response_content());
         });
-    }
-
-    response_content make_content()
-    {
-        response_content content;
-        memcpy(&content.call_id, &content_[0], sizeof(content.call_id));
-        memcpy(&content.code, &content_[sizeof(content.call_id)], sizeof(content.code));
-        content.message_name.assign(&content_[sizeof(content.call_id) + sizeof(content.code)], res_head_.message_name_len);
-        content.body.assign(&content_[sizeof(content.call_id) + sizeof(content.code) + res_head_.message_name_len], res_head_.body_len);
-        return std::move(content);
     }
 
     void add_bind_func(unsigned int call_id, const task_t& task)
@@ -247,17 +237,13 @@ private:
     }
 
 private:
-    char res_head_buf_[response_header_len];
-    response_header res_head_;
-    std::vector<char> content_;
-    atimer<> timer_;
-
     struct task_with_timepoint
     {
         task_t task;
         std::chrono::time_point<std::chrono::high_resolution_clock> time;
     };
     threadsafe_unordered_map<unsigned int, task_with_timepoint> task_map_;
+    atimer<> timer_;
     thread_pool threadpool_;
     std::atomic<unsigned int> call_id_;
 };
