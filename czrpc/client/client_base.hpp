@@ -98,7 +98,10 @@ protected:
     response_content read()
     {
         read_head();
-        check_head();
+        if (!check_head())
+        {
+            throw std::runtime_error("Content len is too big");
+        }
         return std::move(read_content());
     }
 
@@ -145,6 +148,16 @@ protected:
         content.message_name.assign(&rsp_content_[sizeof(content.call_id) + sizeof(content.code)], rsp_head_.message_name_len);
         content.body.assign(&rsp_content_[sizeof(content.call_id) + sizeof(content.code) + rsp_head_.message_name_len], rsp_head_.body_len);
         return std::move(content);
+    }
+
+    bool check_head()
+    {
+        memcpy(&rsp_head_, rsp_head_buf_, sizeof(rsp_head_buf_));
+        if (rsp_head_.message_name_len + rsp_head_.body_len > max_buffer_len)
+        {
+            return false;
+        }
+        return true;
     }
 
 private:
@@ -237,15 +250,6 @@ private:
         {
             is_connected_ = false;
             throw std::runtime_error(ec.message());
-        }
-    }
-
-    void check_head()
-    {
-        memcpy(&rsp_head_, rsp_head_buf_, sizeof(rsp_head_buf_));
-        if (rsp_head_.message_name_len + rsp_head_.body_len > max_buffer_len)
-        {
-            throw std::runtime_error("Content len is too big");
         }
     }
 
