@@ -5,13 +5,17 @@
 #include <vector>
 #include <thread>
 #include <memory>
+#include <unordered_map>
+#include <mutex>
 #include <google/protobuf/message.h>
 #include <boost/asio.hpp>
 #include "base/header.hpp"
 #include "base/atimer.hpp"
 #include "base/scope_guard.hpp"
 #include "base/serialize_util.hpp"
+#include "base/thread_pool.hpp"
 #include "base/table/threadsafe_list.hpp"
+#include "base/table/threadsafe_unordered_map.hpp"
 
 using namespace czrpc::base;
 using namespace czrpc::base::table;
@@ -23,8 +27,7 @@ namespace client
 class client_base
 {
 public:
-    client_base() : work_(ios_), socket_(ios_), 
-    timer_work_(timer_ios_), timer_(timer_ios_), is_connected_(false) {}
+    client_base() : work_(ios_), socket_(ios_), is_connected_(false) {}
     virtual ~client_base()
     {
         stop();
@@ -47,37 +50,56 @@ public:
     virtual void run()
     {
         start_ios_thread();
-        if (client_type_ == client_type::rpc_client)
-        {
-            start_timer_thread();
-        }
     }
 
     virtual void stop()
     {
-        if (client_type_ == client_type::rpc_client)
-        {
-            stop_timer_thread();
-        }
         stop_ios_thread();
     }
 
-    void call_one_way(const request_content& content)
+    void set_connect_success_notify(const std::function<void()> func)
     {
-        std::lock_guard<std::mutex> lock(mutex_);
-        write(content);
+        connect_success_notify_ = func;
     }
 
-    response_content call_two_way(const request_content& content)
+    void async_write(const request_content& content)
     {
-        std::lock_guard<std::mutex> lock(mutex_);
-        write(content);
-        return std::move(read());
+        request_header header;
+        header.protocol_len = content.protocol.size();
+        header.message_name_len = content.message_name.size();
+        header.body_len = content.body.size();
+
+        if (header.protocol_len + header.message_name_len + header.body_len > max_buffer_len)
+        {
+            throw std::runtime_error("Send data is too big");
+        }
+
+        auto buffer = get_buffer(request_data{ header, content });
+        async_write_impl(buffer);
     }
 
-    void async_call_one_way(const request_content& content)
+protected:
+    void write(const request_content& content)
     {
-        async_write(content);
+        request_header header;
+        header.protocol_len = content.protocol.size();
+        header.message_name_len = content.message_name.size();
+        header.body_len = content.body.size();
+
+        if (header.protocol_len + header.message_name_len + header.body_len > max_buffer_len)
+        {
+            throw std::runtime_error("Send data is too big");
+        }
+
+        auto buffer = get_buffer(request_data{ header, content });
+        write_impl(buffer);
+    }
+
+    response_content read()
+    {
+        read_head();
+        check_head();
+        return std::move(read_content());
     }
 
     void disconnect()
@@ -91,12 +113,6 @@ public:
         }
     }
 
-    void set_connect_success_notify(const std::function<void()> func)
-    {
-        connect_success_notify_ = func;
-    }
-
-protected:
     boost::asio::ip::tcp::socket& get_socket()
     {
         return socket_;
@@ -157,38 +173,6 @@ private:
         }
     }
 
-    void write(const request_content& content)
-    {
-        request_header header;
-        header.protocol_len = content.protocol.size();
-        header.message_name_len = content.message_name.size();
-        header.body_len = content.body.size();
-
-        if (header.protocol_len + header.message_name_len + header.body_len > max_buffer_len)
-        {
-            throw std::runtime_error("Send data is too big");
-        }
-
-        auto buffer = get_buffer(request_data{ header, content });
-        write_impl(buffer);
-    }
-
-    void async_write(const request_content& content)
-    {
-        request_header header;
-        header.protocol_len = content.protocol.size();
-        header.message_name_len = content.message_name.size();
-        header.body_len = content.body.size();
-
-        if (header.protocol_len + header.message_name_len + header.body_len > max_buffer_len)
-        {
-            throw std::runtime_error("Send data is too big");
-        }
-
-        auto buffer = get_buffer(request_data{ header, content });
-        async_write_impl(buffer);
-    }
-
     void write_impl(const std::shared_ptr<std::string>& buffer)
     {
         boost::system::error_code ec;
@@ -235,15 +219,6 @@ private:
         });
     }
 
-    response_content read()
-    {
-        start_timer();
-        auto guard = make_guard([this]{ stop_timer(); });
-        read_head();
-        check_head();
-        return std::move(read_content());
-    }
-
     void read_head()
     {
         boost::system::error_code ec;
@@ -276,6 +251,11 @@ private:
             throw std::runtime_error(ec.message());
         }
 
+        return std::move(make_content());
+    }
+
+    response_content make_content()
+    {
         response_content content;
         memcpy(&content.call_id, &content_[0], sizeof(content.call_id));
         memcpy(&content.code, &content_[sizeof(content.call_id)], sizeof(content.code));
@@ -289,47 +269,9 @@ private:
         return std::move(content);
     }
 
-    void start_timer()
-    {
-        if (timeout_milli_ != 0)
-        {
-            timer_.start(timeout_milli_);
-        }
-    }
-
-    void stop_timer()
-    {
-        if (timeout_milli_ != 0)
-        {
-            timer_.stop();
-        }
-    }
-
     void start_ios_thread()
     {
         thread_ = std::make_unique<std::thread>([this]{ ios_.run(); });
-    }
-
-    void start_timer_thread()
-    {
-        if (timeout_milli_ != 0)
-        {
-            timer_thread_ = std::make_unique<std::thread>([this]{ timer_ios_.run(); });
-            timer_.bind([this]{ disconnect(); });
-            timer_.set_single_shot(true);
-        }
-    }
-
-    void stop_timer_thread()
-    {
-        timer_ios_.stop();
-        if (timer_thread_ != nullptr)
-        {
-            if (timer_thread_->joinable())
-            {
-                timer_thread_->join();
-            }
-        }
     }
 
     void stop_ios_thread()
@@ -358,13 +300,7 @@ private:
     response_header res_head_;
     std::vector<char> content_;
 
-    boost::asio::io_service timer_ios_;
-    boost::asio::io_service::work timer_work_;
-    std::unique_ptr<std::thread> timer_thread_;
-    atimer<> timer_;
-
     std::atomic<bool> is_connected_ ;
-    std::mutex mutex_;
     std::mutex conn_mutex_;
 
     threadsafe_list<std::shared_ptr<std::string>> send_queue_;

@@ -27,31 +27,15 @@ public:
         serialize_util::singleton::get()->check_message(message);
         try_connect();
         client_flag flag{ serialize_mode::serialize, client_type_ };
-        call_one_way(request_content{ 0, flag, topic_name, message->GetDescriptor()->full_name(), 
-                     serialize_util::singleton::get()->serialize(message) });
+        async_write(request_content{ 0, flag, topic_name, message->GetDescriptor()->full_name(), 
+                    serialize_util::singleton::get()->serialize(message) });
     }
 
     void publish_raw(const std::string& topic_name, const std::string& body)
     {
         try_connect();
         client_flag flag{ serialize_mode::non_serialize, client_type_ };
-        call_one_way(request_content{ 0, flag, topic_name, "", body });
-    }
-
-    void async_publish(const std::string& topic_name, const message_ptr& message)
-    {
-        serialize_util::singleton::get()->check_message(message);
-        try_connect();
-        client_flag flag{ serialize_mode::serialize, client_type_ };
-        async_call_one_way(request_content{ 0, flag, topic_name, message->GetDescriptor()->full_name(), 
-                           serialize_util::singleton::get()->serialize(message) });
-    }
-
-    void async_publish_raw(const std::string& topic_name, const std::string& body)
-    {
-        try_connect();
-        client_flag flag{ serialize_mode::non_serialize, client_type_ };
-        async_call_one_way(request_content{ 0, flag, topic_name, "", body });
+        async_write(request_content{ 0, flag, topic_name, "", body });
     }
 };
 

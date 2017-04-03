@@ -1,12 +1,6 @@
 #pragma once
 
-#include <unordered_map>
-#include <mutex>
-#include "base/table/threadsafe_unordered_map.hpp"
-#include "base/thread_pool.hpp"
 #include "client_base.hpp"
-
-using namespace czrpc::base::table;
 
 namespace czrpc
 {
@@ -72,7 +66,7 @@ public:
                 }
             };
             client_->add_bind_func(content_.call_id, task_);
-            client_->async_call_one_way(content_);
+            client_->async_write(content_);
         }
 
         void result(const std::function<void(const std::string&, const czrpc::base::error_code&)>& func)
@@ -97,7 +91,7 @@ public:
                 }
             };
             client_->add_bind_func(content_.call_id, task_);
-            client_->async_call_one_way(content_);
+            client_->async_write(content_);
         }
 
     private:
