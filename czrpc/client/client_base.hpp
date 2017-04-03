@@ -271,7 +271,10 @@ private:
 
     void start_ios_thread()
     {
-        thread_ = std::make_unique<std::thread>([this]{ ios_.run(); });
+        if (thread_ == nullptr)
+        {
+            thread_ = std::make_unique<std::thread>([this]{ ios_.run(); });
+        }
     }
 
     void stop_ios_thread()
@@ -298,7 +301,7 @@ private:
     boost::asio::io_service::work work_;
     boost::asio::ip::tcp::socket socket_;
     boost::asio::ip::tcp::resolver::iterator endpoint_iter_;
-    std::unique_ptr<std::thread> thread_;
+    std::unique_ptr<std::thread> thread_ = nullptr;
 
     std::atomic<bool> is_connected_ ;
     std::mutex conn_mutex_;
