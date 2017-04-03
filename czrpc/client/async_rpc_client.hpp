@@ -1,6 +1,7 @@
 #pragma once
 
 #include "client_base.hpp"
+#include "rpc_task.hpp"
 
 namespace czrpc
 {
@@ -37,85 +38,28 @@ public:
         threadpool_.stop();
     }
 
-    using task_t = std::function<void(const response_content&)>; 
-    class rpc_task
-    {
-    public:
-        rpc_task(const request_content& content, async_rpc_client* client) 
-            : content_(content), client_(client) {}
-
-        void result(const std::function<void(const message_ptr&, const czrpc::base::error_code&)>& func)
-        {
-            task_ = [func, this](const response_content& content)
-            {
-                try
-                {
-                    czrpc::base::error_code ec(content.code);
-                    if (ec)
-                    {
-                        func(nullptr, ec);
-                    }
-                    else
-                    {
-                        func(serialize_util::singleton::get()->deserialize(content.message_name, content.body), ec);
-                    }
-                }
-                catch (std::exception& e)
-                {
-                    std::cout << e.what() << std::endl;
-                }
-            };
-            client_->add_bind_func(content_.call_id, task_);
-            client_->async_write(content_);
-        }
-
-        void result(const std::function<void(const std::string&, const czrpc::base::error_code&)>& func)
-        {
-            task_ = [func, this](const response_content& content)
-            {
-                try
-                {
-                    czrpc::base::error_code ec(content.code);
-                    if (ec)
-                    {
-                        func("", ec);
-                    }
-                    else
-                    {
-                        func(content.body, ec);
-                    }
-                }
-                catch (std::exception& e)
-                {
-                    std::cout << e.what() << std::endl;
-                }
-            };
-            client_->add_bind_func(content_.call_id, task_);
-            client_->async_write(content_);
-        }
-
-    private:
-        client_flag flag_;
-        request_content content_;
-        task_t task_;
-        async_rpc_client* client_;
-    };
-
     auto async_call(const std::string& func_name, const message_ptr& message)
     {
         serialize_util::singleton::get()->check_message(message);
         sync_connect();
         client_flag flag{ serialize_mode::serialize, client_type_ };
-        return rpc_task{ request_content{ ++call_id_, flag, func_name, 
-                         message->GetDescriptor()->full_name(), 
-                         serialize_util::singleton::get()->serialize(message) }, this };
+        return rpc_task<async_rpc_client>{ request_content{ ++call_id_, flag, func_name, 
+                                           message->GetDescriptor()->full_name(), 
+                                           serialize_util::singleton::get()->serialize(message) }, this };
     }
 
     auto async_call_raw(const std::string& func_name, const std::string& body)
     {
         sync_connect();
         client_flag flag{ serialize_mode::non_serialize, client_type_ };
-        return rpc_task{ request_content{ ++call_id_, flag, func_name, "", body }, this };
+        return rpc_task<async_rpc_client>{ request_content{ ++call_id_, flag, func_name, "", body }, this };
+    }
+
+    void add_bind_func(unsigned int call_id, const task_t& task)
+    {
+        auto begin_time = std::chrono::high_resolution_clock::now();
+        task_with_timepoint task_time{ task, begin_time };
+        task_map_.emplace(call_id, task_time);
     }
 
 private:
@@ -171,13 +115,6 @@ private:
 
             route(make_response_content());
         });
-    }
-
-    void add_bind_func(unsigned int call_id, const task_t& task)
-    {
-        auto begin_time = std::chrono::high_resolution_clock::now();
-        task_with_timepoint task_time{ task, begin_time };
-        task_map_.emplace(call_id, task_time);
     }
 
     void route(const response_content& content)
