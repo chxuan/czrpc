@@ -117,7 +117,7 @@ A modern RPC framework based on protobuf
 
 
 ## License
-This software is licensed under the [MIT license][3]. © 2017 chxuan
+This software is licensed under the [MIT license][2]. © 2017 chxuan
 
 
   [1]: http://img.shields.io/badge/license-MIT-blue.svg?style=flat-square
