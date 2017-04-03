@@ -118,23 +118,23 @@ private:
                 return;
             }
 
-            if (async_check_head())
+            if (check_head())
             {
                 async_read_content();
             }
             else
             {
+                std::cout << "Content len is too big" << std::endl;
                 async_read_head();
             }
         });
     }
 
-    bool async_check_head()
+    bool check_head()
     {
         memcpy(&push_head_, push_head_buf_, sizeof(push_head_buf_));
         if (push_head_.protocol_len + push_head_.message_name_len + push_head_.body_len > max_buffer_len)
         {
-            std::cout << "Content len is too big" << std::endl;
             return false;
         }
         return true;
