@@ -59,6 +59,12 @@ public:
         std::call_once(call_flag_, [this]{ stop_impl(); });
     }
 
+    std::size_t size()
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        return task_queue_.size();
+    }
+
 private:
     void run_task()
     {
