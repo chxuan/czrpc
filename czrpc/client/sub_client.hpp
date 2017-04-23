@@ -29,19 +29,17 @@ public:
         threadpool_.init_thread_num(thread_num);
         client_base::run();
         sync_connect();
-        start_timer();
     }
 
     virtual void stop() override final
     {
-        timer_.destroy();
         client_base::stop();
+        threadpool_.stop();
     }
 
     template<typename Function>
     void subscribe(const std::string& topic_name, const Function& func)
     {
-        sync_connect();
         client_flag flag{ serialize_mode::serialize, client_type_ };
         async_write(request_content{ 0, flag, topic_name, "", subscribe_topic_flag });
         sub_router::singleton::get()->bind(topic_name, func);
@@ -50,7 +48,6 @@ public:
     template<typename Function, typename Self>
     void subscribe(const std::string& topic_name, const Function& func, Self* self)
     {
-        sync_connect();
         client_flag flag{ serialize_mode::serialize, client_type_ };
         async_write(request_content{ 0, flag, topic_name, "", subscribe_topic_flag });
         sub_router::singleton::get()->bind(topic_name, func, self);
@@ -59,7 +56,6 @@ public:
     template<typename Function>
     void subscribe_raw(const std::string& topic_name, const Function& func)
     {
-        sync_connect();
         client_flag flag{ serialize_mode::non_serialize, client_type_ };
         async_write(request_content{ 0, flag, topic_name, "", subscribe_topic_flag });
         sub_router::singleton::get()->bind_raw(topic_name, func);
@@ -68,7 +64,6 @@ public:
     template<typename Function, typename Self>
     void subscribe_raw(const std::string& topic_name, const Function& func, Self* self)
     {
-        sync_connect();
         client_flag flag{ serialize_mode::non_serialize, client_type_ };
         async_write(request_content{ 0, flag, topic_name, "", subscribe_topic_flag });
         sub_router::singleton::get()->bind_raw(topic_name, func, self);
@@ -76,7 +71,6 @@ public:
 
     void cancel_subscribe(const std::string& topic_name)
     {
-        sync_connect();
         client_flag flag{ serialize_mode::serialize, client_type_ };
         async_write(request_content{ 0, flag, topic_name, "", cancel_subscribe_topic_flag });
         sub_router::singleton::get()->unbind(topic_name);
@@ -84,7 +78,6 @@ public:
 
     void cancel_subscribe_raw(const std::string& topic_name)
     {
-        sync_connect();
         client_flag flag{ serialize_mode::serialize, client_type_ };
         async_write(request_content{ 0, flag, topic_name, "", cancel_subscribe_topic_flag });
         sub_router::singleton::get()->unbind_raw(topic_name);
@@ -109,12 +102,14 @@ private:
             if (!get_socket().is_open())
             {
                 log_warn() << "Socket is not open";
+                reconnect();
                 return;
             }
 
             if (ec)
             {
                 log_warn() << ec.message();
+                reconnect();
                 return;
             }
 
@@ -152,17 +147,18 @@ private:
             if (!get_socket().is_open())
             {
                 log_warn() << "Socket is not open";
+                reconnect();
                 return;
             }
 
             if (ec)
             {
                 log_warn() << ec.message();
+                reconnect();
                 return;
             }
 
             threadpool_.add_task(&sub_client::router_thread, this, make_push_content());
-            last_active_time_ = time(nullptr);
         });
     }
 
@@ -174,23 +170,6 @@ private:
         content.message_name.assign(&content_[sizeof(content.mode) + push_head_.protocol_len], push_head_.message_name_len);
         content.body.assign(&content_[sizeof(content.mode) + push_head_.protocol_len + push_head_.message_name_len], push_head_.body_len);
         return std::move(content);
-    }
-
-    void heartbeats_timer()
-    {
-        if ((time(nullptr) - last_active_time_) * 1000 > heartbeats_milli)
-        {
-            try
-            {
-                sync_connect();
-                client_flag flag{ serialize_mode::serialize, client_type_ };
-                async_write(request_content{ 0, flag, heartbeats_flag, "", heartbeats_flag });
-            }
-            catch (std::exception& e)
-            {
-                log_warn() << e.what();
-            }
-        }
     }
 
     void retry_subscribe()
@@ -206,21 +185,6 @@ private:
         catch (std::exception& e)
         {
             log_warn() << e.what();
-        }
-    }
-
-    void start_timer()
-    {
-        timer_.bind([this]{ heartbeats_timer(); });
-        timer_.start(heartbeats_milli);
-    }
-
-    void sync_connect()
-    {
-        if (try_connect())
-        {
-            async_read_head();
-            retry_subscribe();
         }
     }
 
@@ -242,14 +206,38 @@ private:
         }
     }
 
+    void sync_connect()
+    {
+        if (try_connect())
+        {
+            async_read_head();
+            retry_subscribe();
+        }
+    }
+
+    void reconnect()
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        boost::asio::async_connect(get_socket(), endpoint_iter_,
+                                   [this](boost::system::error_code ec, boost::asio::ip::tcp::resolver::iterator)
+        {
+            if (!ec)
+            {
+                async_read_head();
+                retry_subscribe();
+            }
+            else if (ec != boost::asio::error::already_connected)
+            {
+                reconnect();
+            }
+        });
+    }
+
 private:
     char push_head_buf_[push_header_len];
     push_header push_head_;
     std::vector<char> content_;
-
-    atimer<> timer_;
     thread_pool threadpool_;
-    time_t last_active_time_ = 0;
 };
 
 }

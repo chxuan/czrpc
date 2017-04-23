@@ -133,15 +133,6 @@ private:
         }
     }
 
-    void sync_connect()
-    {
-        if (try_connect())
-        {
-            task_map_.clear();
-            async_read_head();
-        }
-    }
-
     void check_request_timeout()
     {
         auto current_time = std::chrono::high_resolution_clock::now();
@@ -163,6 +154,15 @@ private:
     {
         timer_.bind([this]{ check_request_timeout(); });
         timer_.start(check_request_timeout_milli);
+    }
+
+    void sync_connect()
+    {
+        if (try_connect())
+        {
+            task_map_.clear();
+            async_read_head();
+        }
     }
 
     void reconnect()

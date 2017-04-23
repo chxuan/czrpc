@@ -233,15 +233,11 @@ private:
 
     void subscriber_coming(const std::string& topic_name, const std::string& body, const connection_ptr& conn)
     {
-        if (topic_name == heartbeats_flag && body == heartbeats_flag)
-        {
-            // do nothing.
-        }
-        else if (topic_name != heartbeats_flag && body == subscribe_topic_flag)
+        if (body == subscribe_topic_flag)
         {
             topic_manager::singleton::get()->add_topic(topic_name, conn);
         }
-        else if (topic_name != heartbeats_flag && body == cancel_subscribe_topic_flag)
+        else if (body == cancel_subscribe_topic_flag)
         {
             topic_manager::singleton::get()->remove_topic(topic_name, conn);
         }

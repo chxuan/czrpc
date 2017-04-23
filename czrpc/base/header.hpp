@@ -1,4 +1,5 @@
 #pragma once
+
 #include <string>
 #include <unordered_map>
 
@@ -12,8 +13,6 @@ constexpr const int response_header_len = 4 + 4;
 constexpr const int push_header_len = 4 + 4 + 4;
 const std::string subscribe_topic_flag = "1";
 const std::string cancel_subscribe_topic_flag = "0";
-const std::string heartbeats_flag = "00";
-const int heartbeats_milli = 10000;
 const int check_request_timeout_milli = 1000;
 
 enum class serialize_mode : unsigned int
