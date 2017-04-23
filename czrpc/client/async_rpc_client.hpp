@@ -41,7 +41,6 @@ public:
     auto async_call(const std::string& func_name, const message_ptr& message)
     {
         serialize_util::singleton::get()->check_message(message);
-        sync_connect();
         client_flag flag{ serialize_mode::serialize, client_type_ };
         return rpc_task<async_rpc_client>{ request_content{ ++call_id_, flag, func_name, 
                                            message->GetDescriptor()->full_name(), 
@@ -50,7 +49,6 @@ public:
 
     auto async_call_raw(const std::string& func_name, const std::string& body)
     {
-        sync_connect();
         client_flag flag{ serialize_mode::non_serialize, client_type_ };
         return rpc_task<async_rpc_client>{ request_content{ ++call_id_, flag, func_name, "", body }, this };
     }
@@ -71,12 +69,14 @@ private:
             if (!get_socket().is_open())
             {
                 log_warn() << "Socket is not open";
+                reconnect();
                 return;
             }
 
             if (ec)
             {
                 log_warn() << ec.message();
+                reconnect();
                 return;
             }
 
@@ -104,12 +104,14 @@ private:
             if (!get_socket().is_open())
             {
                 log_warn() << "Socket is not open";
+                reconnect();
                 return;
             }
 
             if (ec)
             {
                 log_warn() << ec.message();
+                reconnect();
                 return;
             }
 
@@ -161,6 +163,24 @@ private:
     {
         timer_.bind([this]{ check_request_timeout(); });
         timer_.start(check_request_timeout_milli);
+    }
+
+    void reconnect()
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        boost::asio::async_connect(get_socket(), endpoint_iter_,
+                                   [this](boost::system::error_code ec, boost::asio::ip::tcp::resolver::iterator)
+        {
+            if (!ec)
+            {
+                task_map_.clear();
+                async_read_head();
+            }
+            else if (ec != boost::asio::error::already_connected)
+            {
+                reconnect();
+            }
+        });
     }
 
 private:

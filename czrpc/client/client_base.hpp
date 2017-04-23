@@ -296,12 +296,12 @@ protected:
     char rsp_head_buf_[response_header_len];
     response_header rsp_head_;
     std::vector<char> rsp_content_;
+    boost::asio::ip::tcp::resolver::iterator endpoint_iter_;
 
 private:
     boost::asio::io_service ios_;
     boost::asio::io_service::work work_;
     boost::asio::ip::tcp::socket socket_;
-    boost::asio::ip::tcp::resolver::iterator endpoint_iter_;
     std::unique_ptr<std::thread> thread_ = nullptr;
 
     std::atomic<bool> is_connected_ ;
