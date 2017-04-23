@@ -184,7 +184,7 @@ private:
         }
         catch (std::exception& e)
         {
-            std::cout << e.what() << std::endl;
+            log_warn() << e.what();
             conn->disconnect();
         }
     }
@@ -196,7 +196,7 @@ private:
         auto rsp = std::make_shared<response>(conn, content.call_id);
         if (!router::singleton::get()->route(content.protocol, req, rsp))
         {
-            std::cout << "Route failed, invaild protocol: " << content.protocol << std::endl;
+            log_warn() << "Route failed, invaild protocol: " << content.protocol;
             response_error(content.call_id, rpc_error_code::route_failed, conn);
         }
     }
@@ -207,7 +207,7 @@ private:
         auto rsp = std::make_shared<response>(conn, content.call_id);
         if (!router::singleton::get()->route_raw(content.protocol, req, rsp))
         {
-            std::cout << "Route failed, invaild protocol: " << content.protocol << std::endl;
+            log_warn() << "Route failed, invaild protocol: " << content.protocol;
             response_error(content.call_id, rpc_error_code::route_failed, conn);
         }
     }
@@ -225,7 +225,7 @@ private:
             }
             catch (std::exception& e)
             {
-                std::cout << e.what() << std::endl;
+                log_warn() << e.what();
                 conn.lock()->disconnect();
             }
         }

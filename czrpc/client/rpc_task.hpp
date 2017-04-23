@@ -2,6 +2,7 @@
 
 #include "base/header.hpp"
 #include "base/serialize_util.hpp"
+#include "base/czlog.hpp"
 
 using namespace czrpc::base;
 
@@ -35,7 +36,7 @@ public:
             }
             catch (std::exception& e)
             {
-                std::cout << e.what() << std::endl;
+                log_warn() << e.what();
             }
         };
         client_->add_bind_func(content_.call_id, task_);
@@ -60,7 +61,7 @@ public:
             }
             catch (std::exception& e)
             {
-                std::cout << e.what() << std::endl;
+                log_warn() << e.what();
             }
         };
         client_->add_bind_func(content_.call_id, task_);

@@ -9,6 +9,7 @@
 #include "base/scope_guard.hpp"
 #include "base/atimer.hpp"
 #include "base/table/threadsafe_list.hpp"
+#include "base/czlog.hpp"
 
 using namespace czrpc::base;
 using namespace czrpc::base::table;
@@ -159,7 +160,7 @@ private:
             auto guard = make_guard([this, self]{ handle_error(); });
             if (!socket_.is_open())
             {
-                std::cout << "Socket is not open" << std::endl;
+                log_warn() << "Socket is not open";
                 return;
             }
 
@@ -185,7 +186,7 @@ private:
         memcpy(&req_head_, req_head_buf_, sizeof(req_head_buf_));
         if (req_head_.protocol_len + req_head_.message_name_len + req_head_.body_len > max_buffer_len)
         {
-            std::cout << "Content len is too big" << std::endl;
+            log_warn() << "Content len is too big";
             return false;
         }
         return true;
@@ -203,7 +204,7 @@ private:
             auto guard = make_guard([this, self]{ handle_error(); });
             if (!socket_.is_open())
             {
-                std::cout << "Socket is not open" << std::endl;
+                log_warn() << "Socket is not open";
                 return;
             }
 

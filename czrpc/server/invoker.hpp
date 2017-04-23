@@ -6,8 +6,10 @@
 #include "rpc_message.hpp"
 #include "base/header.hpp"
 #include "base/function_traits.hpp"
+#include "base/czlog.hpp"
 
 using namespace czrpc::message;
+using namespace czrpc::base;
 
 namespace czrpc
 {
@@ -28,7 +30,7 @@ public:
         }
         catch (std::exception& e)
         {
-            std::cout << e.what() << std::endl;
+            log_warn() << e.what();
         }
     }
 

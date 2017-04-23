@@ -16,6 +16,7 @@
 #include "base/thread_pool.hpp"
 #include "base/table/threadsafe_list.hpp"
 #include "base/table/threadsafe_unordered_map.hpp"
+#include "base/czlog.hpp"
 
 using namespace czrpc::base;
 using namespace czrpc::base::table;
@@ -237,7 +238,7 @@ private:
             {
                 is_connected_ = false;
                 send_queue_.clear();
-                std::cout << ec.message() << std::endl;
+                log_warn() << ec.message();
             }
         });
     }

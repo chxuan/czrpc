@@ -5,6 +5,7 @@
 #include "base/header.hpp"
 #include "base/serialize_util.hpp"
 #include "base/function_traits.hpp"
+#include "base/czlog.hpp"
 
 using namespace czrpc::base;
 namespace czrpc
@@ -27,7 +28,7 @@ public:
         }
         catch (std::exception& e)
         {
-            std::cout << e.what() << std::endl;
+            log_warn() << e.what();
         }
     }
 
@@ -50,7 +51,7 @@ public:
         }
         catch (std::exception& e)
         {
-            std::cout << e.what() << std::endl;
+            log_warn() << e.what();
         }
     }
 

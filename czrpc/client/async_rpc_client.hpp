@@ -70,13 +70,13 @@ private:
         {
             if (!get_socket().is_open())
             {
-                std::cout << "Socket is not open" << std::endl;
+                log_warn() << "Socket is not open";
                 return;
             }
 
             if (ec)
             {
-                std::cout << ec.message() << std::endl;
+                log_warn() << ec.message();
                 return;
             }
 
@@ -86,7 +86,7 @@ private:
             }
             else
             {
-                std::cout << "Content len is too big" << std::endl;
+                log_warn() << "Content len is too big";
                 async_read_head();
             }
         });
@@ -103,13 +103,13 @@ private:
 
             if (!get_socket().is_open())
             {
-                std::cout << "Socket is not open" << std::endl;
+                log_warn() << "Socket is not open";
                 return;
             }
 
             if (ec)
             {
-                std::cout << ec.message() << std::endl;
+                log_warn() << ec.message();
                 return;
             }
 
@@ -127,7 +127,7 @@ private:
         }
         else
         {
-            std::cout << "Route failed, call id: " << content.call_id << ", message name: " << content.message_name << std::endl;
+            log_warn() << "Route failed, call id: " << content.call_id << ", message name: " << content.message_name;
         }
     }
 
