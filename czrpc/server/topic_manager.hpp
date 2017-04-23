@@ -51,14 +51,14 @@ public:
 
     std::list<connection_weak_ptr> get_connection_by_topic(const std::string& topic_name)
     {
-        std::list<connection_weak_ptr> conn_vec;
         std::lock_guard<std::mutex> lock(mutex_);
+        std::list<connection_weak_ptr> conn_list;
         auto range = topic_map_.equal_range(topic_name);
         for (auto iter = range.first; iter != range.second; ++iter)
         {
-            conn_vec.emplace_back(iter->second);
+            conn_list.emplace_back(iter->second);
         }
-        return std::move(conn_vec);
+        return std::move(conn_list);
     }
 
     void remove_all_topic(const connection_ptr& conn)

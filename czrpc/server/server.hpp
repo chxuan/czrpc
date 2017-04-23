@@ -125,6 +125,19 @@ public:
         return router::singleton::get()->is_bind_raw(protocol);
     }
 
+    void publish(const std::string& topic_name, const message_ptr& message)
+    {
+        serialize_util::singleton::get()->check_message(message);
+        publish_impl(push_content{ serialize_mode::serialize, topic_name, 
+                     message->GetDescriptor()->full_name(), 
+                     serialize_util::singleton::get()->serialize(message) });
+    }
+
+    void publish_raw(const std::string& topic_name, const std::string& message)
+    {
+        publish_impl(push_content{ serialize_mode::non_serialize, topic_name, "", message });
+    }
+
 private:
     void listen()
     {
@@ -158,10 +171,6 @@ private:
         if (type == client_type::rpc_client || type == client_type::async_rpc_client)
         {
             rpc_coming(content, conn);
-        }
-        else if (type == client_type::pub_client)
-        {
-            publisher_coming(push_content{ content.flag.mode, content.protocol, content.message_name, content.body });
         }
         else if (type == client_type::sub_client)
         {
@@ -212,7 +221,7 @@ private:
         }
     }
 
-    void publisher_coming(const push_content& content)
+    void publish_impl(const push_content& content)
     {
         for (auto& conn : topic_manager::singleton::get()->get_connection_by_topic(content.protocol))
         {
