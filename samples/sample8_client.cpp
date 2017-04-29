@@ -1,32 +1,10 @@
 /************************************************
- * 发布订阅客户端
+ * 订阅者
 ************************************************/
 #include <iostream>
 #include <thread>
 #include "czrpc/client/client.hpp"
 #include "common.pb.h"
-
-czrpc::client::pub_client client;
-
-void pub_func()
-{
-    while (true)
-    {
-        try
-        {
-            auto message = std::make_shared<news>();
-            message->set_str("Good news");
-
-            client.publish("news", message);
-            client.publish_raw("song", "My heart will go on");
-        }
-        catch (std::exception& e)
-        {
-            std::cout << e.what() << std::endl;
-        }
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    }
-}
 
 void auto_news(const message_ptr& in_message)
 {
@@ -36,13 +14,12 @@ void auto_news(const message_ptr& in_message)
 
 int main()
 {
-    czrpc::client::sub_client client2;
+    czrpc::client::sub_client client;
     try
     {
         client.connect({ "127.0.0.1", 50051 }).timeout(3000).run();
-        client2.connect({ "127.0.0.1", 50051 }).timeout(3000).run();
-        client2.subscribe("news", &auto_news);
-        client2.subscribe_raw("song", [](const std::string& str){ std::cout << str << std::endl; });
+        client.subscribe("news", &auto_news);
+        client.subscribe_raw("song", [](const std::string& str){ std::cout << str << std::endl; });
     }
     catch (std::exception& e)
     {
@@ -50,7 +27,6 @@ int main()
         return 0;
     }
 
-    pub_func();
-
+    std::cin.get();
     return 0;
 }
