@@ -18,34 +18,34 @@ void test_func()
             message->set_name("Jack");
             message->set_age(20);
 
-            client.async_call("request_person_info", message).result([](const message_ptr& in_message, const czrpc::base::error_code& ec)
+            client.async_call("request_person_info", message).result([](const czrpc::message::result_ptr& ret)
             {
-                if (ec)
+                if (ret->error_code())
                 {
-                    log_warn() << ec.message();
+                    log_warn() << ret->error_code().message();
                     return;
                 }
 
-                if (IS_SAME(in_message, response_person_info_message))
+                if (IS_SAME(ret->message(), response_person_info_message))
                 {
-                    auto message = std::dynamic_pointer_cast<response_person_info_message>(in_message); 
+                    auto message = std::dynamic_pointer_cast<response_person_info_message>(ret->message()); 
                     message->PrintDebugString();
                 }
-                else if (IS_SAME(in_message, response_error))
+                else if (IS_SAME(ret->message(), response_error))
                 {
-                    auto message = std::dynamic_pointer_cast<response_error>(in_message); 
+                    auto message = std::dynamic_pointer_cast<response_error>(ret->message()); 
                     message->PrintDebugString();
                 }
             });
 
-            client.async_call_raw("echo", "Hello world").result([](const std::string& in_message, const czrpc::base::error_code& ec)
+            client.async_call_raw("echo", "Hello world").result([](const czrpc::message::result_ptr& ret)
             {
-                if (ec)
+                if (ret->error_code())
                 {
-                    log_warn() << ec.message();
+                    log_warn() << ret->error_code().message();
                     return;
                 }
-                std::cout << in_message << std::endl;
+                std::cout << ret->raw_data() << std::endl;
             });
         }
         catch (std::exception& e)

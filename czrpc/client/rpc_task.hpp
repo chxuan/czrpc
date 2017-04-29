@@ -3,6 +3,7 @@
 #include "base/header.hpp"
 #include "base/serialize_util.hpp"
 #include "base/czlog.hpp"
+#include "result.hpp"
 
 using namespace czrpc::base;
 
@@ -18,20 +19,39 @@ public:
     rpc_task(const request_content& content, T* client) 
         : content_(content), client_(client) {}
 
-    void result(const std::function<void(const message_ptr&, const czrpc::base::error_code&)>& func)
+    unsigned int result(const std::function<void(const czrpc::message::result_ptr&)>& func)
     {
         task_ = [func, this](const response_content& content)
         {
             try
             {
                 czrpc::base::error_code ec(content.code);
-                if (ec)
+                if (!content.message_name.empty())
                 {
-                    func(nullptr, ec);
+                    if (ec)
+                    {
+                        auto ret = std::make_shared<czrpc::message::result>(ec, content.call_id);
+                        func(ret);
+                    }
+                    else
+                    {
+                        auto ret = std::make_shared<czrpc::message::result>(ec, content.call_id,
+                                                                            serialize_util::singleton::get()->deserialize(content.message_name, content.body));
+                        func(ret);
+                    }
                 }
                 else
                 {
-                    func(serialize_util::singleton::get()->deserialize(content.message_name, content.body), ec);
+                    if (ec)
+                    {
+                        auto ret = std::make_shared<czrpc::message::result>(ec, content.call_id, "");
+                        func(ret);
+                    }
+                    else
+                    {
+                        auto ret = std::make_shared<czrpc::message::result>(ec, content.call_id, content.body);
+                        func(ret);
+                    }
                 }
             }
             catch (std::exception& e)
@@ -41,31 +61,7 @@ public:
         };
         client_->add_bind_func(content_.call_id, task_);
         client_->async_write(content_);
-    }
-
-    void result(const std::function<void(const std::string&, const czrpc::base::error_code&)>& func)
-    {
-        task_ = [func, this](const response_content& content)
-        {
-            try
-            {
-                czrpc::base::error_code ec(content.code);
-                if (ec)
-                {
-                    func("", ec);
-                }
-                else
-                {
-                    func(content.body, ec);
-                }
-            }
-            catch (std::exception& e)
-            {
-                log_warn() << e.what();
-            }
-        };
-        client_->add_bind_func(content_.call_id, task_);
-        client_->async_write(content_);
+        return content_.call_id;
     }
 
 private:
