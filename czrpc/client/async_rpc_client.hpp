@@ -69,6 +69,7 @@ private:
             if (!get_socket().is_open())
             {
                 log_warn() << "Socket is not open";
+                disconnect();
                 reconnect();
                 return;
             }
@@ -76,6 +77,7 @@ private:
             if (ec)
             {
                 log_warn() << ec.message();
+                disconnect();
                 reconnect();
                 return;
             }
@@ -104,6 +106,7 @@ private:
             if (!get_socket().is_open())
             {
                 log_warn() << "Socket is not open";
+                disconnect();
                 reconnect();
                 return;
             }
@@ -111,6 +114,7 @@ private:
             if (ec)
             {
                 log_warn() << ec.message();
+                disconnect();
                 reconnect();
                 return;
             }

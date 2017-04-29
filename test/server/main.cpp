@@ -82,11 +82,13 @@ int main()
         return 0;
     }
 
+#if 1
     std::thread t1(test_func);
     std::thread t2(test_func);
 
     t1.join();
     t2.join();
+#endif
 
     std::cin.get();
     return 0;

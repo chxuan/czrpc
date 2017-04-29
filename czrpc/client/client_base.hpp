@@ -55,6 +55,7 @@ public:
 
     virtual void stop()
     {
+        disconnect();
         stop_ios_thread();
     }
 
@@ -249,7 +250,7 @@ private:
         boost::asio::read(socket_, boost::asio::buffer(rsp_head_buf_), ec);
         if (ec)
         {
-            is_connected_ = false;
+            disconnect();
             throw std::runtime_error(ec.message());
         }
     }
@@ -262,7 +263,7 @@ private:
         boost::asio::read(socket_, boost::asio::buffer(rsp_content_), ec); 
         if (ec)
         {
-            is_connected_ = false;
+            disconnect();
             throw std::runtime_error(ec.message());
         }
 
