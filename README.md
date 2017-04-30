@@ -87,7 +87,7 @@ A modern RPC framework based on protobuf
     }
     ```
 
-    更多例子请查看samples。
+    更多例子请查看[samples][2]。
     
 ## 开发平台
 
@@ -118,8 +118,9 @@ A modern RPC framework based on protobuf
 
 
 ## License
-This software is licensed under the [MIT license][2]. © 2017 chxuan
+This software is licensed under the [MIT license][3]. © 2017 chxuan
 
 
   [1]: http://img.shields.io/badge/license-MIT-blue.svg?style=flat-square
-  [2]: https://github.com/chxuan/czrpc/blob/master/LICENSE
+  [2]: https://github.com/chxuan/czrpc/tree/master/samples
+  [3]: https://github.com/chxuan/czrpc/blob/master/LICENSE

@@ -9,8 +9,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "server", "server\server.vcx
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sync_rpc_client", "sync_rpc_client\sync_rpc_client.vcxproj", "{36EA5BC4-D914-4038-8F3D-EC970F57C94E}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pub_client", "pub_client\pub_client.vcxproj", "{AC4FF731-1148-4B54-881E-EFEABE33D710}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sub_client", "sub_client\sub_client.vcxproj", "{864358C3-6B71-40E1-89E9-96C6450C8E14}"
 EndProject
 Global
@@ -45,14 +43,6 @@ Global
 		{36EA5BC4-D914-4038-8F3D-EC970F57C94E}.Release|x64.Build.0 = Release|x64
 		{36EA5BC4-D914-4038-8F3D-EC970F57C94E}.Release|x86.ActiveCfg = Release|Win32
 		{36EA5BC4-D914-4038-8F3D-EC970F57C94E}.Release|x86.Build.0 = Release|Win32
-		{AC4FF731-1148-4B54-881E-EFEABE33D710}.Debug|x64.ActiveCfg = Debug|x64
-		{AC4FF731-1148-4B54-881E-EFEABE33D710}.Debug|x64.Build.0 = Debug|x64
-		{AC4FF731-1148-4B54-881E-EFEABE33D710}.Debug|x86.ActiveCfg = Debug|Win32
-		{AC4FF731-1148-4B54-881E-EFEABE33D710}.Debug|x86.Build.0 = Debug|Win32
-		{AC4FF731-1148-4B54-881E-EFEABE33D710}.Release|x64.ActiveCfg = Release|x64
-		{AC4FF731-1148-4B54-881E-EFEABE33D710}.Release|x64.Build.0 = Release|x64
-		{AC4FF731-1148-4B54-881E-EFEABE33D710}.Release|x86.ActiveCfg = Release|Win32
-		{AC4FF731-1148-4B54-881E-EFEABE33D710}.Release|x86.Build.0 = Release|Win32
 		{864358C3-6B71-40E1-89E9-96C6450C8E14}.Debug|x64.ActiveCfg = Debug|x64
 		{864358C3-6B71-40E1-89E9-96C6450C8E14}.Debug|x64.Build.0 = Debug|x64
 		{864358C3-6B71-40E1-89E9-96C6450C8E14}.Debug|x86.ActiveCfg = Debug|Win32
