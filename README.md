@@ -105,6 +105,7 @@ A modern RPC framework based on protobuf
 * TCP长连接。
 * 同步调用。
 * 异步调用。
+* 日志记录。
 * worker线程池处理任务。
 * 客户端超时处理。
 * 支持原始数据发送。
