@@ -227,6 +227,10 @@ private:
         {
             if (!ec)
             {
+                if (connect_success_notify_ != nullptr)
+                {
+                    connect_success_notify_();
+                }
                 async_read_head();
                 retry_subscribe();
             }

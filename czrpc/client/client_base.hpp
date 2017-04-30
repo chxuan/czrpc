@@ -298,6 +298,7 @@ protected:
     response_header rsp_head_;
     std::vector<char> rsp_content_;
     boost::asio::ip::tcp::resolver::iterator endpoint_iter_;
+    std::function<void()> connect_success_notify_ = nullptr;
 
 private:
     boost::asio::io_service ios_;
@@ -309,7 +310,6 @@ private:
     std::mutex conn_mutex_;
 
     threadsafe_list<std::shared_ptr<std::string>> send_queue_;
-    std::function<void()> connect_success_notify_ = nullptr;
 };
 
 }

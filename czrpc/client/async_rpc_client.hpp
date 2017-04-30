@@ -177,6 +177,10 @@ private:
         {
             if (!ec)
             {
+                if (connect_success_notify_ != nullptr)
+                {
+                    connect_success_notify_();
+                }
                 task_map_.clear();
                 async_read_head();
             }
