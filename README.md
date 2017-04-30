@@ -10,10 +10,6 @@ A modern RPC framework based on protobuf
 
     git clone https://github.com/chxuan/czrpc.git
 
-然后下载依赖的第三方库：
-
-    git submodule update --init --recursive
-    
 下载过后包含czrpc头文件即可使用。
 
 ## Tutorial
