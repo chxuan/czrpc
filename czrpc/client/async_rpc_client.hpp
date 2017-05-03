@@ -27,8 +27,8 @@ public:
         static const std::size_t thread_num = 1;
         threadpool_.init_thread_num(thread_num);
         client_base::run();
-        sync_connect();
         start_timer();
+        sync_connect();
     }
 
     virtual void stop() override final
