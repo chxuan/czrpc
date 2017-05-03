@@ -214,8 +214,7 @@ private:
     {
         if (try_connect())
         {
-            async_read_head();
-            retry_subscribe();
+            start();
         }
     }
 
@@ -227,18 +226,23 @@ private:
         {
             if (!ec)
             {
-                if (connect_success_notify_ != nullptr)
-                {
-                    connect_success_notify_();
-                }
-                async_read_head();
-                retry_subscribe();
+                start();
             }
             else if (ec != boost::asio::error::already_connected)
             {
                 reconnect();
             }
         });
+    }
+
+    void start()
+    {
+        async_read_head();
+        retry_subscribe();
+        if (connect_success_notify_ != nullptr)
+        {
+            connect_success_notify_();
+        }
     }
 
 private:

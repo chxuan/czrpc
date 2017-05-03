@@ -132,10 +132,6 @@ protected:
             {
                 connect();
                 is_connected_ = true;
-                if (connect_success_notify_ != nullptr)
-                {
-                    connect_success_notify_();
-                }
                 return true;
             }
         }

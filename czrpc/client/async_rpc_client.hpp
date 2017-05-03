@@ -164,8 +164,7 @@ private:
     {
         if (try_connect())
         {
-            task_map_.clear();
-            async_read_head();
+            start();
         }
     }
 
@@ -177,18 +176,23 @@ private:
         {
             if (!ec)
             {
-                if (connect_success_notify_ != nullptr)
-                {
-                    connect_success_notify_();
-                }
-                task_map_.clear();
-                async_read_head();
+                start();
             }
             else if (ec != boost::asio::error::already_connected)
             {
                 reconnect();
             }
         });
+    }
+
+    void start()
+    {
+        task_map_.clear();
+        async_read_head();
+        if (connect_success_notify_ != nullptr)
+        {
+            connect_success_notify_();
+        }
     }
 
 private:
