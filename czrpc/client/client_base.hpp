@@ -55,6 +55,7 @@ public:
 
     virtual void stop()
     {
+        is_stoped_ = true;
         disconnect();
         stop_ios_thread();
     }
@@ -295,6 +296,7 @@ protected:
     std::vector<char> rsp_content_;
     boost::asio::ip::tcp::resolver::iterator endpoint_iter_;
     std::function<void()> connect_success_notify_ = nullptr;
+    std::atomic<bool> is_stoped_{ false };
 
 private:
     boost::asio::io_service ios_;

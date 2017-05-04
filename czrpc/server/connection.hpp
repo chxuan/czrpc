@@ -6,7 +6,6 @@
 #include <boost/asio.hpp>
 #include <boost/timer.hpp>
 #include "base/header.hpp"
-#include "base/scope_guard.hpp"
 #include "base/atimer.hpp"
 #include "base/table/threadsafe_list.hpp"
 #include "base/czlog.hpp"
@@ -157,15 +156,15 @@ private:
         boost::asio::async_read(socket_, boost::asio::buffer(req_head_buf_), 
                                 [this, self](boost::system::error_code ec, std::size_t)
         {
-            auto guard = make_guard([this, self]{ handle_error(); });
             if (!socket_.is_open())
             {
                 log_warn() << "Socket is not open";
+                handle_error();
                 return;
             }
-
             if (ec)
             {
+                handle_error();
                 return;
             }
 
@@ -177,7 +176,6 @@ private:
             {
                 read_head();
             }
-            guard.dismiss();
         });
     }
 
@@ -201,22 +199,21 @@ private:
                                 [this, self](boost::system::error_code ec, std::size_t)
         {
             read_head();
-            auto guard = make_guard([this, self]{ handle_error(); });
             if (!socket_.is_open())
             {
                 log_warn() << "Socket is not open";
+                handle_error();
                 return;
             }
-
             if (ec)
             {
+                handle_error();
                 return;
             }
 
             auto content = make_content();
             type_ = content.flag.type;
             route_(content, self);
-            guard.dismiss();
         });
     }
 

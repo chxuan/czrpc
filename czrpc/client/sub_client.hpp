@@ -99,19 +99,21 @@ private:
         boost::asio::async_read(get_socket(), boost::asio::buffer(push_head_buf_), 
                                 [this](boost::system::error_code ec, std::size_t)
         {
-            if (!get_socket().is_open())
+            if (is_stoped_)
             {
-                log_warn() << "Socket is not open";
-                disconnect();
-                reconnect();
                 return;
             }
 
+            if (!get_socket().is_open())
+            {
+                log_warn() << "Socket is not open";
+                handle_error();
+                return;
+            }
             if (ec)
             {
                 log_warn() << ec.message();
-                disconnect();
-                reconnect();
+                handle_error();
                 return;
             }
 
@@ -144,21 +146,22 @@ private:
         boost::asio::async_read(get_socket(), boost::asio::buffer(content_), 
                                 [this](boost::system::error_code ec, std::size_t)
         {
+            if (is_stoped_)
+            {
+                return;
+            }
             async_read_head();
 
             if (!get_socket().is_open())
             {
                 log_warn() << "Socket is not open";
-                disconnect();
-                reconnect();
+                handle_error();
                 return;
             }
-
             if (ec)
             {
                 log_warn() << ec.message();
-                disconnect();
-                reconnect();
+                handle_error();
                 return;
             }
 
@@ -243,6 +246,12 @@ private:
         {
             connect_success_notify_();
         }
+    }
+
+    void handle_error()
+    {
+        disconnect();
+        reconnect();
     }
 
 private:
