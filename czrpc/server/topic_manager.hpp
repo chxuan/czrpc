@@ -31,20 +31,16 @@ public:
     void remove_topic(const std::string& topic_name, const connection_ptr& conn)
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        auto iter = topic_map_.find(topic_name);
-        if (iter != topic_map_.end())
+        auto range = topic_map_.equal_range(topic_name);
+        while (range.first != range.second)
         {
-            auto range = topic_map_.equal_range(iter->first);
-            while (range.first != range.second)
+            if (range.first->second.lock() == conn)
             {
-                if (range.first->second.lock() == conn)
-                {
-                    range.first = topic_map_.erase(range.first);
-                }
-                else
-                {
-                    ++range.first;
-                }
+                range.first = topic_map_.erase(range.first);
+            }
+            else
+            {
+                ++range.first;
             }
         }
     }
