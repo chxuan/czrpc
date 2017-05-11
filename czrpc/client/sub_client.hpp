@@ -117,26 +117,9 @@ private:
                 return;
             }
 
-            if (check_head())
-            {
-                async_read_content();
-            }
-            else
-            {
-                log_warn() << "Content len is too big";
-                async_read_head();
-            }
+            memcpy(&push_head_, push_head_buf_, sizeof(push_head_buf_));
+            async_read_content();
         });
-    }
-
-    bool check_head()
-    {
-        memcpy(&push_head_, push_head_buf_, sizeof(push_head_buf_));
-        if (push_head_.protocol_len + push_head_.message_name_len + push_head_.body_len > max_buffer_len)
-        {
-            return false;
-        }
-        return true;
     }
 
     void async_read_content()

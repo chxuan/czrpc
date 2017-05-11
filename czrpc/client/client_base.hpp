@@ -72,11 +72,6 @@ public:
         header.message_name_len = content.message_name.size();
         header.body_len = content.body.size();
 
-        if (header.protocol_len + header.message_name_len + header.body_len > max_buffer_len)
-        {
-            throw std::runtime_error("Send data is too big");
-        }
-
         auto buffer = get_buffer(request_data{ header, content });
         async_write_impl(buffer);
     }
@@ -89,11 +84,6 @@ protected:
         header.message_name_len = content.message_name.size();
         header.body_len = content.body.size();
 
-        if (header.protocol_len + header.message_name_len + header.body_len > max_buffer_len)
-        {
-            throw std::runtime_error("Send data is too big");
-        }
-
         auto buffer = get_buffer(request_data{ header, content });
         write_impl(buffer);
     }
@@ -101,10 +91,7 @@ protected:
     response_content read()
     {
         read_head();
-        if (!check_head())
-        {
-            throw std::runtime_error("Content len is too big");
-        }
+        memcpy(&rsp_head_, rsp_head_buf_, sizeof(rsp_head_buf_));
         return std::move(read_content());
     }
 
@@ -147,16 +134,6 @@ protected:
         content.message_name.assign(&rsp_content_[sizeof(content.call_id) + sizeof(content.code)], rsp_head_.message_name_len);
         content.body.assign(&rsp_content_[sizeof(content.call_id) + sizeof(content.code) + rsp_head_.message_name_len], rsp_head_.body_len);
         return std::move(content);
-    }
-
-    bool check_head()
-    {
-        memcpy(&rsp_head_, rsp_head_buf_, sizeof(rsp_head_buf_));
-        if (rsp_head_.message_name_len + rsp_head_.body_len > max_buffer_len)
-        {
-            return false;
-        }
-        return true;
     }
 
 private:

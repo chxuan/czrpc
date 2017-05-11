@@ -56,47 +56,10 @@ public:
         return socket_;
     }
 
-    void write(const response_content& content)
-    {
-        unsigned int message_name_len = static_cast<unsigned int>(content.message_name.size());
-        unsigned int body_len = static_cast<unsigned int>(content.body.size());
-        if (message_name_len + body_len > max_buffer_len)
-        {
-            handle_error();
-            throw std::runtime_error("Send data is too big");
-        }
-
-        response_header header{ message_name_len, body_len };
-        auto buffer = get_buffer(response_data{ header, content });
-        write_impl(buffer);
-    }
-
-    void write(const push_content& content)
-    {
-        unsigned int protocol_len = static_cast<unsigned int>(content.protocol.size());
-        unsigned int message_name_len = static_cast<unsigned int>(content.message_name.size());
-        unsigned int body_len = static_cast<unsigned int>(content.body.size());
-        if (protocol_len + message_name_len + body_len > max_buffer_len)
-        {
-            handle_error();
-            throw std::runtime_error("Send data is too big");
-        }
-
-        push_header header{ protocol_len, message_name_len, body_len };
-        auto buffer = get_buffer(push_data{ header, content });
-        write_impl(buffer);
-    }
-
     void async_write(const response_content& content)
     {
         unsigned int message_name_len = static_cast<unsigned int>(content.message_name.size());
         unsigned int body_len = static_cast<unsigned int>(content.body.size());
-        if (message_name_len + body_len > max_buffer_len)
-        {
-            handle_error();
-            throw std::runtime_error("Send data is too big");
-        }
-
         response_header header{ message_name_len, body_len };
         auto buffer = get_buffer(response_data{ header, content });
         async_write_impl(buffer);
@@ -107,12 +70,6 @@ public:
         unsigned int protocol_len = static_cast<unsigned int>(content.protocol.size());
         unsigned int message_name_len = static_cast<unsigned int>(content.message_name.size());
         unsigned int body_len = static_cast<unsigned int>(content.body.size());
-        if (protocol_len + message_name_len + body_len > max_buffer_len)
-        {
-            handle_error();
-            throw std::runtime_error("Send data is too big");
-        }
-
         push_header header{ protocol_len, message_name_len, body_len };
         auto buffer = get_buffer(push_data{ header, content });
         async_write_impl(buffer);
@@ -168,26 +125,9 @@ private:
                 return;
             }
 
-            if (check_head())
-            {
-                read_content();
-            }
-            else
-            {
-                read_head();
-            }
+            memcpy(&req_head_, req_head_buf_, sizeof(req_head_buf_));
+            read_content();
         });
-    }
-
-    bool check_head()
-    {
-        memcpy(&req_head_, req_head_buf_, sizeof(req_head_buf_));
-        if (req_head_.protocol_len + req_head_.message_name_len + req_head_.body_len > max_buffer_len)
-        {
-            log_warn() << "Content len is too big";
-            return false;
-        }
-        return true;
     }
 
     void read_content()
@@ -256,17 +196,6 @@ private:
         buffer->append(data.content.message_name);
         buffer->append(data.content.body);
         return buffer;
-    }
-
-    void write_impl(const std::shared_ptr<std::string>& buffer)
-    {
-        boost::system::error_code ec;
-        boost::asio::write(socket_, boost::asio::buffer(*buffer), ec);
-        if (ec)
-        {
-            handle_error();
-            throw std::runtime_error(ec.message());
-        }
     }
 
     void async_write_impl(const std::shared_ptr<std::string>& buffer)

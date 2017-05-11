@@ -84,15 +84,8 @@ private:
                 return;
             }
 
-            if (check_head())
-            {
-                async_read_content();
-            }
-            else
-            {
-                log_warn() << "Content len is too big";
-                async_read_head();
-            }
+            memcpy(&rsp_head_, rsp_head_buf_, sizeof(rsp_head_buf_));
+            async_read_content();
         });
     }
 

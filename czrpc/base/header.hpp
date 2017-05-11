@@ -7,7 +7,6 @@ namespace czrpc
 {
 namespace base
 {
-constexpr const int max_buffer_len = 20 * 1024 * 1024; // 20MB
 constexpr const int request_header_len = 4 + 4 + 4;
 constexpr const int response_header_len = 4 + 4;
 constexpr const int push_header_len = 4 + 4 + 4;
