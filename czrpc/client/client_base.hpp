@@ -60,7 +60,7 @@ public:
         stop_ios_thread();
     }
 
-    void set_connect_success_notify(const std::function<void()> func)
+    void set_connect_success_notify(const std::function<void()>& func)
     {
         connect_success_notify_ = func;
     }
