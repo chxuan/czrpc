@@ -48,6 +48,12 @@ public:
         return *this;
     }
 
+    client_base& resend(bool is_resend)
+    {
+        is_resend_ = is_resend;
+        return *this;
+    }
+
     virtual void run()
     {
         start_ios_thread();
@@ -212,7 +218,17 @@ private:
             else
             {
                 is_connected_ = false;
-                send_queue_.clear();
+                if (is_resend_)
+                {
+                    if (!send_queue_.empty())
+                    {
+                        async_write_impl();
+                    }
+                }
+                else
+                {
+                    send_queue_.clear();
+                }
                 log_warn() << ec.message();
             }
         });
@@ -285,6 +301,7 @@ private:
     std::mutex conn_mutex_;
 
     threadsafe_list<std::shared_ptr<std::string>> send_queue_;
+    std::atomic<bool> is_resend_{ false };
 };
 
 }

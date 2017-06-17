@@ -74,7 +74,7 @@ int main()
         std::vector<czrpc::base::endpoint> ep;
         ep.emplace_back(czrpc::base::endpoint{ "0.0.0.0", 50051 });
         ep.emplace_back(czrpc::base::endpoint{ "0.0.0.0", 50052 });
-        app.listen(ep).ios_threads(std::thread::hardware_concurrency()).work_threads(10).run();
+        app.listen(ep).ios_threads(4).work_threads(4).run();
     }
     catch (std::exception& e)
     {
