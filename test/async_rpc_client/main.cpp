@@ -66,7 +66,7 @@ int main()
     try
     {
         client.set_connect_success_notify(std::bind(&connect_success_notify));
-        client.connect({ "127.0.0.1", 50051 }).timeout(3000).run();
+        client.connect({ "127.0.0.1", 50051 }).timeout(3, 3).run();
     }
     catch (std::exception& e)
     {

@@ -55,9 +55,7 @@ public:
 
     void add_bind_func(unsigned int call_id, const task_t& task)
     {
-        auto begin_time = std::chrono::high_resolution_clock::now();
-        task_with_timepoint task_time{ task, begin_time };
-        task_map_.emplace(call_id, task_time);
+        task_map_.emplace(call_id, task_with_timepoint{ task, time(nullptr) });
     }
 
 private:
@@ -135,11 +133,10 @@ private:
 
     void check_request_timeout()
     {
-        auto current_time = std::chrono::high_resolution_clock::now();
-        task_map_.for_each_erase([&](int, const task_with_timepoint& task_time)
+        time_t current_time = time(nullptr);
+        task_map_.for_each_erase([current_time, this](int, const task_with_timepoint& task_time)
         {
-            auto elapsed_time = current_time - task_time.time;
-            if (std::chrono::duration_cast<std::chrono::milliseconds>(elapsed_time).count() >= static_cast<long>(timeout_milli_))
+            if (current_time - task_time.begin_time >= request_timeout_)
             {
                 response_content content;
                 content.code = rpc_error_code::request_timeout;
@@ -153,7 +150,7 @@ private:
     void start_timer()
     {
         timer_.bind([this]{ check_request_timeout(); });
-        timer_.start(check_request_timeout_milli);
+        timer_.start(1);
     }
 
     void sync_connect()
@@ -201,10 +198,10 @@ private:
     struct task_with_timepoint
     {
         task_t task;
-        std::chrono::time_point<std::chrono::high_resolution_clock> time;
+        time_t begin_time;
     };
     threadsafe_unordered_map<unsigned int, task_with_timepoint> task_map_;
-    atimer<> timer_;
+    atimer<boost::posix_time::seconds> timer_;
     thread_pool threadpool_;
     std::atomic<unsigned int> call_id_;
 };

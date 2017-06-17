@@ -59,7 +59,7 @@ private:
     {
         std::lock_guard<std::mutex> lock(mutex_);
         write(content);
-        timer_.start(timeout_milli_);
+        timer_.start(request_timeout_);
         auto guard = make_guard([this]{ timer_.stop(); });
         return std::move(read());
     }
@@ -90,7 +90,7 @@ private:
     }
 
 private:
-    atimer<> timer_;
+    atimer<boost::posix_time::seconds> timer_;
     std::mutex mutex_;
 };
 

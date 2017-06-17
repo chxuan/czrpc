@@ -28,7 +28,7 @@ namespace client
 class client_base
 {
 public:
-    client_base() : work_(ios_), socket_(ios_), is_connected_(false) {}
+    client_base() : work_(ios_), socket_(ios_) {}
     virtual ~client_base()
     {
         stop();
@@ -42,9 +42,10 @@ public:
         return *this;
     }
 
-    client_base& timeout(std::size_t timeout_milli)
+    client_base& timeout(time_t connect_timeout, time_t request_timeout)
     {
-        timeout_milli_ = timeout_milli;
+        connect_timeout_ = connect_timeout;
+        request_timeout_ = request_timeout;
         return *this;
     }
 
@@ -157,7 +158,7 @@ private:
 
     void connect()
     {
-        auto begin_time = std::chrono::high_resolution_clock::now();
+        time_t begin_time = time(nullptr);
         while (true)
         {
             try
@@ -168,9 +169,7 @@ private:
             catch (std::exception& e)
             {
                 std::this_thread::sleep_for(std::chrono::milliseconds(20));
-                auto end_time = std::chrono::high_resolution_clock::now();
-                auto elapsed_time = end_time - begin_time;
-                if (std::chrono::duration_cast<std::chrono::milliseconds>(elapsed_time).count() > static_cast<long>(timeout_milli_))
+                if (time(nullptr) - begin_time >= connect_timeout_)
                 {
                     throw std::runtime_error(e.what());
                 }
@@ -283,7 +282,8 @@ private:
 
 protected:
     client_type client_type_;
-    std::size_t timeout_milli_ = 0;
+    time_t connect_timeout_ = 3;
+    time_t request_timeout_ = 10;
     char rsp_head_buf_[response_header_len];
     response_header rsp_head_;
     std::vector<char> rsp_content_;
@@ -296,10 +296,8 @@ private:
     boost::asio::io_service::work work_;
     boost::asio::ip::tcp::socket socket_;
     std::unique_ptr<std::thread> thread_ = nullptr;
-
-    std::atomic<bool> is_connected_ ;
+    std::atomic<bool> is_connected_ { false };
     std::mutex conn_mutex_;
-
     threadsafe_list<std::shared_ptr<std::string>> send_queue_;
     std::atomic<bool> is_resend_{ false };
 };
