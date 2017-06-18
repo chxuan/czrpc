@@ -11,8 +11,8 @@ int main()
     czrpc::client::async_rpc_client client;
     try
     {
-        // 2.配置连接参数并启动事件循环（非阻塞）
-        client.connect({ "127.0.0.1", 50051 }).run();
+        // 2.resend置为true：当网络断开或服务器关闭时底层不会丢数据直到连接成功后再将之前的数据一并放到服务器，默认为关闭该功能
+        client.connect({ "127.0.0.1", 50051 }).resend(true).run();
 
         auto req = std::make_shared<echo_message>();
         req->set_echo_str("Hello world");
