@@ -106,6 +106,7 @@ A modern RPC framework based on protobuf
 * 客户端超时处理。
 * 支持原始数据发送。
 * 支持发布/订阅模式。
+* 数据重发功能。
 
 ## TODO
 
