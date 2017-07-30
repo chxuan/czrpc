@@ -2,7 +2,7 @@
 
 #include <tuple>
 #include <type_traits>
-#include "base/header.hpp"
+#include "base/protocol_define.hpp"
 #include "base/serialize_util.hpp"
 #include "base/function_traits.hpp"
 #include "base/czlog.hpp"

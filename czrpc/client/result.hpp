@@ -1,6 +1,6 @@
 #pragma once
 
-#include "base/header.hpp"
+#include "base/protocol_define.hpp"
 #include "base/serialize_util.hpp"
 
 namespace czrpc

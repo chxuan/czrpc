@@ -4,7 +4,7 @@
 #include <tuple>
 #include <type_traits>
 #include "rpc_message.hpp"
-#include "base/header.hpp"
+#include "base/protocol_define.hpp"
 #include "base/function_traits.hpp"
 #include "base/czlog.hpp"
 

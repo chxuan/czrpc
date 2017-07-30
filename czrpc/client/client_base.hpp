@@ -9,7 +9,7 @@
 #include <mutex>
 #include <google/protobuf/message.h>
 #include <boost/asio.hpp>
-#include "base/header.hpp"
+#include "base/protocol_define.hpp"
 #include "base/atimer.hpp"
 #include "base/scope_guard.hpp"
 #include "base/serialize_util.hpp"

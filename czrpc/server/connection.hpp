@@ -5,7 +5,7 @@
 #include <memory>
 #include <boost/asio.hpp>
 #include <boost/timer.hpp>
-#include "base/header.hpp"
+#include "base/protocol_define.hpp"
 #include "base/atimer.hpp"
 #include "base/table/threadsafe_list.hpp"
 #include "base/czlog.hpp"
