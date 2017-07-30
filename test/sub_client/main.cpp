@@ -24,7 +24,7 @@ int main()
     {
         czrpc::client::sub_client client;
         client.set_connect_success_notify(std::bind(&connect_success_notify));
-        client.connect({ "127.0.0.1", 50051 }).timeout(3, 3).run();
+        client.connect("127.0.0.1:50051").timeout(3, 3).run();
         client.subscribe("weather", &auto_weather);
         client.subscribe_raw("song", [](const std::string& str){ std::cout << str << std::endl; });
         std::cin.get();

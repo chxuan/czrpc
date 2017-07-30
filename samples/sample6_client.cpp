@@ -11,7 +11,7 @@ int main()
     try
     {
         // 2.配置连接参数并启动事件循环（非阻塞）
-        client.connect({ "127.0.0.1", 50051 }).run();
+        client.connect("127.0.0.1:50051").run();
 
         // 3.同步调用echo函数
         std::string rsp = client.call_raw("echo", "Hello czrpc");

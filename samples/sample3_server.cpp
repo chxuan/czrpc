@@ -23,7 +23,7 @@ int main()
         // 3.设置ios线程数为CPU核数
         // 设置10个work线程
         // 并启动事件循环（非阻塞）
-        server.listen({ "127.0.0.1", 50051 }).ios_threads(std::thread::hardware_concurrency()).work_threads(10).run();
+        server.listen("127.0.0.1:50051").ios_threads(std::thread::hardware_concurrency()).work_threads(10).run();
     }
     catch (std::exception& e)
     {

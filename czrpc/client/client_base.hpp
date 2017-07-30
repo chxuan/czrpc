@@ -17,6 +17,7 @@
 #include "base/table/threadsafe_list.hpp"
 #include "base/table/threadsafe_unordered_map.hpp"
 #include "base/czlog.hpp"
+#include "base/util.hpp"
 
 using namespace czrpc::base;
 using namespace czrpc::base::table;
@@ -34,10 +35,11 @@ public:
         stop();
     }
 
-    client_base& connect(const endpoint& ep)
+    client_base& connect(const std::string& remote_address)
     {
+        const endpoint& ep = get_endpoint(remote_address);
         boost::asio::ip::tcp::resolver resolver(ios_);
-        boost::asio::ip::tcp::resolver::query query(boost::asio::ip::tcp::v4(), ep.ip, std::to_string(ep.port));
+        boost::asio::ip::tcp::resolver::query query(boost::asio::ip::tcp::v4(), ep.ip, ep.port);
         endpoint_iter_ = resolver.resolve(query);
         return *this;
     }

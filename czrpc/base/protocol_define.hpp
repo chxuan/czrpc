@@ -96,12 +96,6 @@ struct push_data
     push_content content;
 };
 
-struct endpoint
-{
-    std::string ip;
-    unsigned short port;
-};
-
 }
 }
 

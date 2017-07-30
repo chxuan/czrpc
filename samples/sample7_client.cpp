@@ -12,7 +12,7 @@ int main()
     try
     {
         // 2.resend置为true：当网络断开或服务器关闭时底层不会丢数据直到连接成功后再将之前的数据一并放到服务器，默认为关闭该功能
-        client.connect({ "127.0.0.1", 50051 }).resend(true).run();
+        client.connect("127.0.0.1:50051").resend(true).run();
 
         auto req = std::make_shared<echo_message>();
         req->set_echo_str("Hello world");

@@ -37,7 +37,7 @@ A modern RPC framework based on protobuf
     
             // 3.配置监听参数并启动事件循环（非阻塞）
             // 服务端默认启动一个ios线程和一个work线程
-            server.listen({ "127.0.0.1", 50051 }).run();
+            server.listen("0.0.0.0:50051").run();
         }
         catch (std::exception& e)
         {
@@ -63,7 +63,7 @@ A modern RPC framework based on protobuf
         try
         {
             // 2.配置连接参数并启动事件循环（非阻塞）
-            client.connect({ "127.0.0.1", 50051 }).run();
+            client.connect("127.0.0.1:50051").run();
     
             auto req = std::make_shared<echo_message>();
             req->set_echo_str("Hello world");

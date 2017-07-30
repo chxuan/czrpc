@@ -37,7 +37,7 @@ int main()
 
         // 4.配置监听参数并启动事件循环（非阻塞）
         // 服务端默认启动一个ios线程和一个work线程
-        server.listen({ "127.0.0.1", 50051 }).run();
+        server.listen("127.0.0.1:50051").run();
     }
     catch (std::exception& e)
     {

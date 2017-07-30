@@ -17,7 +17,7 @@ int main()
     czrpc::client::sub_client client;
     try
     {
-        client.connect({ "127.0.0.1", 50051 }).timeout(3, 3).run();
+        client.connect("127.0.0.1:50051").timeout(3, 3).run();
         client.subscribe("news", &auto_news);
         client.subscribe_raw("song", [](const std::string& str){ std::cout << str << std::endl; });
     }

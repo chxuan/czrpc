@@ -14,7 +14,7 @@ int main()
         // 2.配置连接参数
         // 设置连接超时3秒，请求超时10秒
         // 启动事件循环（非阻塞）
-        client.connect({ "127.0.0.1", 50051 }).timeout(3, 10).run();
+        client.connect("127.0.0.1:50051").timeout(3, 10).run();
 
         auto req = std::make_shared<echo_message>();
         req->set_echo_str("Hello world");

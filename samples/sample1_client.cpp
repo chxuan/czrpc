@@ -12,7 +12,7 @@ int main()
     try
     {
         // 2.配置连接参数并启动事件循环（非阻塞）
-        client.connect({ "127.0.0.1", 50051 }).run();
+        client.connect("127.0.0.1:50051").run();
 
         auto req = std::make_shared<echo_message>();
         req->set_echo_str("Hello world");

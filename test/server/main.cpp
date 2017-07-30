@@ -71,9 +71,7 @@ int main()
         app.bind("request_person_info", &request_person_info);
         app.bind_raw("echo", &test::echo, &t);
 
-        std::vector<czrpc::base::endpoint> ep;
-        ep.emplace_back(czrpc::base::endpoint{ "0.0.0.0", 50051 });
-        ep.emplace_back(czrpc::base::endpoint{ "0.0.0.0", 50052 });
+        std::vector<std::string> ep { "127.0.0.1:50051", "127.0.0.1:50052" };
         app.listen(ep).ios_threads(4).work_threads(4).run();
     }
     catch (std::exception& e)

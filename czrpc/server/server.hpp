@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <mutex>
 #include "base/thread_pool.hpp"
+#include "base/util.hpp"
 #include "io_service_pool.hpp"
 #include "router.hpp"
 #include "tcp_endpoint.hpp"
@@ -27,15 +28,18 @@ public:
         stop();
     }
 
-    server& listen(const endpoint& ep)
+    server& listen(const std::string& listen_address)
     {
-        endpoint_vec_.emplace_back(ep);
+        endpoint_vec_.emplace_back(get_endpoint(listen_address));
         return *this;
     }
 
-    server& listen(const std::vector<endpoint>& ep_vec)
+    server& listen(const std::vector<std::string>& listen_address_vec)
     {
-        endpoint_vec_ = ep_vec;
+        for (auto& listen_address : listen_address_vec)
+        {
+            endpoint_vec_.emplace_back(get_endpoint(listen_address));
+        }
         return *this;
     }
 
@@ -147,7 +151,7 @@ private:
         {
             auto endpoint = std::make_shared<tcp_endpoint>(route_func, handle_error_func, 
                                                            client_connect_notify_, client_disconnect_notify_);
-            endpoint->listen(ep.ip, ep.port);
+            endpoint->listen(ep.ip, static_cast<unsigned short>(std::atoi(ep.port.c_str())));
             tcp_endpoint_vec_.emplace_back(endpoint);
         }
     }
